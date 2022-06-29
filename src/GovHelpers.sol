@@ -122,14 +122,13 @@ library GovHelpers {
    * Alter storage slots so the proposal passes
    */
   function passVoteAndExecute(Vm vm, uint256 proposalId) internal {
-    IAaveGov.ProposalWithoutVotes memory proposal = getProposalById(proposalId);
     uint256 power = 5000000 ether;
     vm.roll(block.number + 1);
     vm.store(address(GOV), _getProposalSlot(proposalId), bytes32(power));
-    uint256 endBlock = proposal.endBlock;
+    uint256 endBlock = GOV.getProposalById(proposalId).endBlock;
     vm.roll(endBlock + 1);
     GOV.queue(proposalId);
-    uint256 executionTime = proposal.executionTime;
+    uint256 executionTime = GOV.getProposalById(proposalId).executionTime;
     vm.warp(executionTime + 1);
     GOV.execute(proposalId);
   }
