@@ -83,7 +83,7 @@ contract ProtocolV3TestBase is Test {
 
   function e2eTest(IPool pool) public {
     ReserveConfig[] memory configs = _getReservesConfigs(pool);
-    deal(address(this), 1000 ether);
+    deal(msg.sender, 1000 ether);
     uint256 snapshot = vm.snapshot();
     _supplyWithdrawFlow(configs, pool);
     vm.revertTo(snapshot);
@@ -146,7 +146,7 @@ contract ProtocolV3TestBase is Test {
     for (uint256 i = 0; i < configs.length; i++) {
       uint256 amount = 10**configs[i].decimals;
       if (configs[i].borrowingEnabled) {
-        _borrow(configs[i], pool, amount, false);
+        this._borrow(configs[i], pool, amount, false);
       } else {
         console.log('SKIP: BORROWING_DISABLED %s', configs[i].symbol);
       }
@@ -163,7 +163,7 @@ contract ProtocolV3TestBase is Test {
     for (uint256 i = 0; i < configs.length; i++) {
       uint256 amount = 10**configs[i].decimals;
       if (configs[i].borrowingEnabled && configs[i].stableBorrowRateEnabled) {
-        _borrow(configs[i], pool, amount, true);
+        this._borrow(configs[i], pool, amount, true);
       } else {
         console.log('SKIP: STABLE_BORROWING_DISABLED %s', configs[i].symbol);
       }
@@ -175,10 +175,13 @@ contract ProtocolV3TestBase is Test {
     IPool pool,
     uint256 amount
   ) internal {
-    deal(config.underlying, address(this), amount);
+    uint256 aTokenBefore = IERC20(config.aToken).balanceOf(msg.sender);
+    deal(config.underlying, msg.sender, amount);
     IERC20(config.underlying).approve(address(pool), amount);
     console.log('SUPPLY: %s, Amount: %s', config.symbol, amount);
-    pool.deposit(config.underlying, amount, address(this), 0);
+    pool.deposit(config.underlying, amount, msg.sender, 0);
+    uint256 aTokenAfter = IERC20(config.aToken).balanceOf(msg.sender);
+    require(_almostEqual(aTokenAfter, aTokenBefore + amount), '_deposit() : ERROR');
   }
 
   function _withdraw(
@@ -187,12 +190,22 @@ contract ProtocolV3TestBase is Test {
     uint256 amount,
     bool max
   ) internal returns (uint256) {
+    uint256 aTokenBefore = IERC20(config.aToken).balanceOf(msg.sender);
     uint256 amountOut = pool.withdraw(
       config.underlying,
       max ? type(uint256).max : amount,
-      address(this)
+      msg.sender
     );
     console.log('WITHDRAW: %s, Amount: %s', config.symbol, amountOut);
+    uint256 aTokenAfter = IERC20(config.aToken).balanceOf(msg.sender);
+    if (aTokenBefore < amount || max) {
+      require(aTokenAfter == 0, '_widthdraw(): DUST_AFTER_WITHDRAW_ALL');
+    } else {
+      require(
+        _almostEqual(aTokenAfter, aTokenBefore - amount),
+        '_withdraw() : INCONSISTENT_ATOKEN_BALANCE_AFTER'
+      );
+    }
     return amountOut;
   }
 
@@ -201,9 +214,29 @@ contract ProtocolV3TestBase is Test {
     IPool pool,
     uint256 amount,
     bool stable
-  ) internal {
+  ) external {
+    address debtToken = stable ? config.stableDebtToken : config.variableDebtToken;
+    uint256 debtBefore = IERC20(debtToken).balanceOf(msg.sender);
     console.log('BORROW: %s, Amount %s, Stable: %s', config.symbol, amount, stable);
-    pool.borrow(config.underlying, amount, stable ? 1 : 2, 0, address(this));
+    pool.borrow(config.underlying, amount, stable ? 1 : 2, 0, msg.sender);
+    uint256 debtAfter = IERC20(debtToken).balanceOf(msg.sender);
+    require(_almostEqual(debtAfter, debtBefore + amount), '_borrow() : ERROR');
+  }
+
+  function _repay(
+    ReserveConfig memory config,
+    IPool pool,
+    uint256 amount,
+    bool stable
+  ) internal {
+    address debtToken = stable ? config.stableDebtToken : config.variableDebtToken;
+    uint256 debtBefore = IERC20(debtToken).balanceOf(msg.sender);
+    deal(config.underlying, msg.sender, amount);
+    IERC20(config.underlying).approve(address(pool), amount);
+    console.log('REPAY: %s, Amount: %s', config.symbol, amount);
+    pool.repay(config.underlying, amount, stable ? 1 : 2, msg.sender);
+    uint256 debtAfter = IERC20(debtToken).balanceOf(msg.sender);
+    require(debtAfter == ((debtBefore > amount) ? debtBefore - amount : 0), '_repay() : ERROR');
   }
 
   function _isInUint256Array(uint256[] memory haystack, uint256 needle)
@@ -854,6 +887,15 @@ contract ProtocolV3TestBase is Test {
     }
     if (countCategory < expectedAssets.length) {
       revert('_getAssetOnEmodeCategory(): LESS_ASSETS_IN_CATEGORY_THAN_EXPECTED');
+    }
+  }
+
+  /// @dev To contemplate +1/-1 precision issues when rounding, mainly on aTokens
+  function _almostEqual(uint256 a, uint256 b) internal pure returns (bool) {
+    if (b == 0) {
+      return (a == b) || (a == (b + 1));
+    } else {
+      return (a == b) || (a == (b + 1)) || (a == (b - 1));
     }
   }
 }
