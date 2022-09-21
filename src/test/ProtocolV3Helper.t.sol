@@ -15,6 +15,7 @@ contract ProxyHelpersTest is ProtocolV3TestBase {
   }
 
   function testE2E() public {
-    this.e2eTest(AaveV3Polygon.POOL);
+    address user = address(3);
+    this.e2eTest(AaveV3Polygon.POOL, user);
   }
 }

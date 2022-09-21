@@ -81,15 +81,15 @@ contract ProtocolV3TestBase is Test {
     _writeEModeConfigs(path, configs, pool);
   }
 
-  function e2eTest(IPool pool) public {
+  function e2eTest(IPool pool, address user) public {
     ReserveConfig[] memory configs = _getReservesConfigs(pool);
-    deal(msg.sender, 1000 ether);
+    deal(user, 1000 ether);
     uint256 snapshot = vm.snapshot();
-    _supplyWithdrawFlow(configs, pool);
+    _supplyWithdrawFlow(configs, pool, user);
     vm.revertTo(snapshot);
-    _variableBorrowFlow(configs, pool);
+    _variableBorrowFlow(configs, pool, user);
     vm.revertTo(snapshot);
-    _stableBorrowFlow(configs, pool);
+    _stableBorrowFlow(configs, pool, user);
     vm.revertTo(snapshot);
   }
 
@@ -119,17 +119,21 @@ contract ProtocolV3TestBase is Test {
   /**
    * @dev tests that all assets can be deposited & withdrawn
    */
-  function _supplyWithdrawFlow(ReserveConfig[] memory configs, IPool pool) internal {
+  function _supplyWithdrawFlow(
+    ReserveConfig[] memory configs,
+    IPool pool,
+    address user
+  ) internal {
     // test all basic interactions
     for (uint256 i = 0; i < configs.length; i++) {
       uint256 amount = 100 * 10**configs[i].decimals;
       if (!configs[i].isFrozen) {
-        _deposit(configs[i], pool, amount);
+        _deposit(configs[i], pool, user, amount);
         _skipBlocks(1000);
-        assertEq(_withdraw(configs[i], pool, amount, false), amount);
-        _deposit(configs[i], pool, amount);
+        assertEq(_withdraw(configs[i], pool, user, amount), amount);
+        _deposit(configs[i], pool, user, amount);
         _skipBlocks(1000);
-        assertGe(_withdraw(configs[i], pool, amount, true), amount);
+        assertGe(_withdraw(configs[i], pool, user, type(uint256).max), amount);
       } else {
         console.log('SKIP: REASON_FROZEN %s', configs[i].symbol);
       }
@@ -139,14 +143,18 @@ contract ProtocolV3TestBase is Test {
   /**
    * @dev tests that all assets with borrowing enabled can be borrowed
    */
-  function _variableBorrowFlow(ReserveConfig[] memory configs, IPool pool) internal {
+  function _variableBorrowFlow(
+    ReserveConfig[] memory configs,
+    IPool pool,
+    address user
+  ) internal {
     // put 1M whatever collateral, which should be enough to borrow 1 of each
     ReserveConfig memory collateralConfig = _getFirstCollateral(configs);
-    _deposit(collateralConfig, pool, 1000000 ether);
+    _deposit(collateralConfig, pool, user, 1000000 ether);
     for (uint256 i = 0; i < configs.length; i++) {
       uint256 amount = 10**configs[i].decimals;
       if (configs[i].borrowingEnabled) {
-        this._borrow(configs[i], pool, amount, false);
+        this._borrow(configs[i], pool, user, amount, false);
       } else {
         console.log('SKIP: BORROWING_DISABLED %s', configs[i].symbol);
       }
@@ -156,14 +164,18 @@ contract ProtocolV3TestBase is Test {
   /**
    * @dev tests that all assets with stable borrowing enabled can be borrowed
    */
-  function _stableBorrowFlow(ReserveConfig[] memory configs, IPool pool) internal {
+  function _stableBorrowFlow(
+    ReserveConfig[] memory configs,
+    IPool pool,
+    address user
+  ) internal {
     // put 1M whatever collateral, which should be enough to borrow 1 of each
     ReserveConfig memory collateralConfig = _getFirstCollateral(configs);
-    _deposit(collateralConfig, pool, 1000000 ether);
+    _deposit(collateralConfig, pool, user, 1000000 ether);
     for (uint256 i = 0; i < configs.length; i++) {
       uint256 amount = 10**configs[i].decimals;
       if (configs[i].borrowingEnabled && configs[i].stableBorrowRateEnabled) {
-        this._borrow(configs[i], pool, amount, true);
+        this._borrow(configs[i], pool, user, amount, true);
       } else {
         console.log('SKIP: STABLE_BORROWING_DISABLED %s', configs[i].symbol);
       }
@@ -173,32 +185,32 @@ contract ProtocolV3TestBase is Test {
   function _deposit(
     ReserveConfig memory config,
     IPool pool,
+    address user,
     uint256 amount
   ) internal {
-    uint256 aTokenBefore = IERC20(config.aToken).balanceOf(msg.sender);
-    deal(config.underlying, msg.sender, amount);
+    vm.startPrank(user);
+    uint256 aTokenBefore = IERC20(config.aToken).balanceOf(user);
+    deal(config.underlying, user, amount);
     IERC20(config.underlying).approve(address(pool), amount);
     console.log('SUPPLY: %s, Amount: %s', config.symbol, amount);
-    pool.deposit(config.underlying, amount, msg.sender, 0);
-    uint256 aTokenAfter = IERC20(config.aToken).balanceOf(msg.sender);
+    pool.deposit(config.underlying, amount, user, 0);
+    uint256 aTokenAfter = IERC20(config.aToken).balanceOf(user);
     require(_almostEqual(aTokenAfter, aTokenBefore + amount), '_deposit() : ERROR');
+    vm.stopPrank();
   }
 
   function _withdraw(
     ReserveConfig memory config,
     IPool pool,
-    uint256 amount,
-    bool max
+    address user,
+    uint256 amount
   ) internal returns (uint256) {
-    uint256 aTokenBefore = IERC20(config.aToken).balanceOf(msg.sender);
-    uint256 amountOut = pool.withdraw(
-      config.underlying,
-      max ? type(uint256).max : amount,
-      msg.sender
-    );
+    vm.startPrank(user);
+    uint256 aTokenBefore = IERC20(config.aToken).balanceOf(user);
+    uint256 amountOut = pool.withdraw(config.underlying, amount, user);
     console.log('WITHDRAW: %s, Amount: %s', config.symbol, amountOut);
-    uint256 aTokenAfter = IERC20(config.aToken).balanceOf(msg.sender);
-    if (aTokenBefore < amount || max) {
+    uint256 aTokenAfter = IERC20(config.aToken).balanceOf(user);
+    if (aTokenBefore < amount) {
       require(aTokenAfter == 0, '_widthdraw(): DUST_AFTER_WITHDRAW_ALL');
     } else {
       require(
@@ -206,37 +218,44 @@ contract ProtocolV3TestBase is Test {
         '_withdraw() : INCONSISTENT_ATOKEN_BALANCE_AFTER'
       );
     }
+    vm.stopPrank();
     return amountOut;
   }
 
   function _borrow(
     ReserveConfig memory config,
     IPool pool,
+    address user,
     uint256 amount,
     bool stable
   ) external {
+    vm.startPrank(user);
     address debtToken = stable ? config.stableDebtToken : config.variableDebtToken;
-    uint256 debtBefore = IERC20(debtToken).balanceOf(msg.sender);
+    uint256 debtBefore = IERC20(debtToken).balanceOf(user);
     console.log('BORROW: %s, Amount %s, Stable: %s', config.symbol, amount, stable);
-    pool.borrow(config.underlying, amount, stable ? 1 : 2, 0, msg.sender);
-    uint256 debtAfter = IERC20(debtToken).balanceOf(msg.sender);
+    pool.borrow(config.underlying, amount, stable ? 1 : 2, 0, user);
+    uint256 debtAfter = IERC20(debtToken).balanceOf(user);
     require(_almostEqual(debtAfter, debtBefore + amount), '_borrow() : ERROR');
+    vm.stopPrank();
   }
 
   function _repay(
     ReserveConfig memory config,
     IPool pool,
+    address user,
     uint256 amount,
     bool stable
   ) internal {
+    vm.startPrank(user);
     address debtToken = stable ? config.stableDebtToken : config.variableDebtToken;
-    uint256 debtBefore = IERC20(debtToken).balanceOf(msg.sender);
-    deal(config.underlying, msg.sender, amount);
+    uint256 debtBefore = IERC20(debtToken).balanceOf(user);
+    deal(config.underlying, user, amount);
     IERC20(config.underlying).approve(address(pool), amount);
     console.log('REPAY: %s, Amount: %s', config.symbol, amount);
-    pool.repay(config.underlying, amount, stable ? 1 : 2, msg.sender);
-    uint256 debtAfter = IERC20(debtToken).balanceOf(msg.sender);
+    pool.repay(config.underlying, amount, stable ? 1 : 2, user);
+    uint256 debtAfter = IERC20(debtToken).balanceOf(user);
     require(debtAfter == ((debtBefore > amount) ? debtBefore - amount : 0), '_repay() : ERROR');
+    vm.stopPrank();
   }
 
   function _isInUint256Array(uint256[] memory haystack, uint256 needle)
