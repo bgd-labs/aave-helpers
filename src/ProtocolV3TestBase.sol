@@ -493,6 +493,21 @@ contract ProtocolV3TestBase is Test {
     revert('RESERVE_CONFIG_NOT_FOUND');
   }
 
+  function _findReserveConfigBySymbol(
+    ReserveConfig[] memory configs,
+    string memory symbolOfUnderlying
+  ) internal pure returns (ReserveConfig memory) {
+    for (uint256 i = 0; i < configs.length; i++) {
+      if (
+        keccak256(abi.encodePacked(configs[i].symbol)) ==
+        keccak256(abi.encodePacked(symbolOfUnderlying))
+      ) {
+        return configs[i];
+      }
+    }
+    revert('RESERVE_CONFIG_NOT_FOUND');
+  }
+
   function _logReserveConfig(ReserveConfig memory config) internal view {
     console.log('Symbol ', config.symbol);
     console.log('Underlying address ', config.underlying);
