@@ -68,6 +68,11 @@ contract ProtocolV3TestBase is Test {
 
   address public constant EOA = 0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045;
 
+  /**
+   * @dev Generates a markdown compatible snapshot of the whole pool configuration into `/reports`.
+   * @param reportName filename suffix for the generated reports.
+   * @param pool the pool to be snapshotted
+   */
   function createConfigurationSnapshot(string memory reportName, IPool pool) public {
     string memory path = string.concat(
       './reports/',
@@ -83,6 +88,11 @@ contract ProtocolV3TestBase is Test {
     _writeEModeConfigs(path, configs, pool);
   }
 
+  /**
+   * @dev Makes a e2e test including withdrawals/borrows and supplies to various reserves.
+   * @param pool the pool that should be tested
+   * @param user the user to run the tests for
+   */
   function e2eTest(IPool pool, address user) public {
     ReserveConfig[] memory configs = _getReservesConfigs(pool);
     deal(user, 1000 ether);

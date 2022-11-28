@@ -206,6 +206,12 @@ interface IBridgeExecutor {
 }
 
 library BridgeExecutorHelpers {
+  /**
+   * @dev Forwards time and executes the latest proposal available on the executor.
+   * @notice Assumes there is a proposal queued awaiting execution.
+   * @param vm Vm
+   * @param bridgeExecutor the executor on the l2
+   */
   function waitAndExecuteLatest(Vm vm, address bridgeExecutor) internal {
     uint256 latestActionSet = IBridgeExecutor(bridgeExecutor).getActionsSetCount() - 1;
     require(
