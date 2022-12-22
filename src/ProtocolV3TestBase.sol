@@ -2,7 +2,7 @@
 pragma solidity >=0.7.5 <0.9.0;
 
 import 'forge-std/Test.sol';
-import {IAaveOracle, IPool, IPoolAddressesProvider, IAaveProtocolDataProvider, TokenData, IInterestRateStrategy, DataTypes} from 'aave-address-book/AaveV3.sol';
+import {IAaveOracle, IPool, IPoolAddressesProvider, IPoolDataProvider, IDefaultInterestRateStrategy, DataTypes} from 'aave-address-book/AaveV3.sol';
 import {IERC20} from 'solidity-utils/contracts/oz-common/interfaces/IERC20.sol';
 
 struct ReserveTokens {
@@ -39,7 +39,7 @@ struct ReserveConfig {
 }
 
 struct LocalVars {
-  TokenData[] reserves;
+  IPoolDataProvider.TokenData[] reserves;
   ReserveConfig[] configs;
 }
 
@@ -351,7 +351,9 @@ contract ProtocolV3TestBase is Test {
     for (uint256 i = 0; i < configs.length; i++) {
       if (!_isInAddressArray(usedStrategies, configs[i].interestRateStrategy)) {
         usedStrategies[i] = configs[i].interestRateStrategy;
-        IInterestRateStrategy strategy = IInterestRateStrategy(configs[i].interestRateStrategy);
+        IDefaultInterestRateStrategy strategy = IDefaultInterestRateStrategy(
+          configs[i].interestRateStrategy
+        );
         vm.writeLine(
           path,
           string.concat(
@@ -475,9 +477,7 @@ contract ProtocolV3TestBase is Test {
 
   function _getReservesConfigs(IPool pool) internal view returns (ReserveConfig[] memory) {
     IPoolAddressesProvider addressesProvider = IPoolAddressesProvider(pool.ADDRESSES_PROVIDER());
-    IAaveProtocolDataProvider poolDataProvider = IAaveProtocolDataProvider(
-      addressesProvider.getPoolDataProvider()
-    );
+    IPoolDataProvider poolDataProvider = IPoolDataProvider(addressesProvider.getPoolDataProvider());
     LocalVars memory vars;
 
     vars.reserves = poolDataProvider.getAllReservesTokens();
@@ -498,7 +498,7 @@ contract ProtocolV3TestBase is Test {
     return vars.configs;
   }
 
-  function _getStructReserveTokens(IAaveProtocolDataProvider pdp, address underlyingAddress)
+  function _getStructReserveTokens(IPoolDataProvider pdp, address underlyingAddress)
     internal
     view
     returns (ReserveTokens memory)
@@ -512,8 +512,8 @@ contract ProtocolV3TestBase is Test {
 
   function _getStructReserveConfig(
     IPool pool,
-    IAaveProtocolDataProvider pdp,
-    TokenData memory reserve
+    IPoolDataProvider pdp,
+    IPoolDataProvider.TokenData memory reserve
   ) internal view returns (ReserveConfig memory) {
     ReserveConfig memory localConfig;
     (
@@ -709,7 +709,9 @@ contract ProtocolV3TestBase is Test {
     address expectedStrategy,
     InterestStrategyValues memory expectedStrategyValues
   ) internal view {
-    IInterestRateStrategy strategy = IInterestRateStrategy(interestRateStrategyAddress);
+    IDefaultInterestRateStrategy strategy = IDefaultInterestRateStrategy(
+      interestRateStrategyAddress
+    );
 
     require(
       address(strategy) == expectedStrategy,
