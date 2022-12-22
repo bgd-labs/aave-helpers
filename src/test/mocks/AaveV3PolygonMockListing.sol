@@ -23,6 +23,7 @@ contract AaveV3PolygonMockListing is AaveV3ListingPolygon {
       enabledToBorrow: true,
       stableRateModeEnabled: false, // TODO
       borrowableInIsolation: false,
+      withSiloedBorrowing: false,
       flashloanable: false,
       ltv: 82_50,
       liqThreshold: 86_00,
@@ -31,7 +32,8 @@ contract AaveV3PolygonMockListing is AaveV3ListingPolygon {
       supplyCap: 85_000,
       borrowCap: 60_000,
       debtCeiling: 0,
-      liqProtocolFee: 10_00
+      liqProtocolFee: 10_00,
+      eModeCategory: 0
     });
 
     return listings;

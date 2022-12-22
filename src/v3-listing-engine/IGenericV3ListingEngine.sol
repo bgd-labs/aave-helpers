@@ -23,8 +23,10 @@ interface IGenericV3ListingEngine {
    *   priceFeed: 0x547a514d5e3769680Ce22B2361c10Ea13619e8a9,
    *   rateStrategy: 0x03733F4E008d36f2e37F0080fF1c8DF756622E6F,
    *   enabledToBorrow: true,
+   *   flashloanable: true,
    *   stableRateModeEnabled: false,
    *   borrowableInIsolation: true,
+   *   withSiloedBorrowing:, false,
    *   ltv: 70_50, // 70.5%
    *   liqThreshold: 76_00, // 76%
    *   liqBonus: 5_00, // 5%
@@ -32,7 +34,8 @@ interface IGenericV3ListingEngine {
    *   supplyCap: 100_000, // 100k AAVE
    *   borrowCap: 60_000, // 60k AAVE
    *   debtCeiling: 100_000, // 100k USD
-   *   liqProtocolFee: 10_00 // 10%
+   *   liqProtocolFee: 10_00, // 10%
+   *   eModeCategory: 0, // No category
    * }
    */
   struct Listing {
@@ -42,7 +45,8 @@ interface IGenericV3ListingEngine {
     address rateStrategy; // Mandatory, no matter if enabled for borrowing or not
     bool enabledToBorrow;
     bool stableRateModeEnabled; // Only considered is enabledToBorrow == true
-    bool borrowableInIsolation; // Only considered is enableToBorrow == true
+    bool borrowableInIsolation; // Only considered is enabledToBorrow == true
+    bool withSiloedBorrowing; // Only considered if enabledToBorrow == true
     bool flashloanable; // Independent from enabled to borrow: an asset can be flashloanble and not enabled to borrow
     uint256 ltv; // Only considered if liqThreshold > 0
     uint256 liqThreshold; // If `0`, the asset will not be enabled as collateral
@@ -52,6 +56,7 @@ interface IGenericV3ListingEngine {
     uint256 borrowCap; // Always configured, no matter if enabled for borrowing or not
     uint256 debtCeiling; // Only considered if liqThreshold > 0
     uint256 liqProtocolFee; // Only considered if liqThreshold > 0
+    uint8 eModeCategory; // If `O`, no eMode category will be set
   }
 
   struct AssetsConfig {
@@ -69,9 +74,11 @@ interface IGenericV3ListingEngine {
   }
 
   struct Borrow {
-    bool enabledToBorrow; // Main config flag, if false, everything else on this struct will be skipped
+    bool enabledToBorrow; // Main config flag, if false, some of the other fields will not be considered
+    bool flashloanable;
     bool stableRateModeEnabled;
     bool borrowableInIsolation;
+    bool withSiloedBorrowing;
     uint256 reserveFactor; // With 2 digits precision, `10_00` for 10%. Should be positive and < 100_00
   }
 
@@ -81,6 +88,7 @@ interface IGenericV3ListingEngine {
     uint256 liqBonus; // Only considered if liqThreshold > 0. Same format as ltv
     uint256 debtCeiling; // Only considered if liqThreshold > 0. In USD and with 2 digits for decimals, e.g. 10_000_00 for 10k
     uint256 liqProtocolFee; // Only considered if liqThreshold > 0. Same format as ltv
+    uint8 eModeCategory;
   }
 
   struct Caps {

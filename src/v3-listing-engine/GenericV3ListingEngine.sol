@@ -160,8 +160,6 @@ contract GenericV3ListingEngine is IGenericV3ListingEngine {
         );
         POOL_CONFIGURATOR.setReserveFactor(ids[i], borrows[i].reserveFactor);
 
-        // TODO add flashloanable
-
         if (borrows[i].stableRateModeEnabled) {
           POOL_CONFIGURATOR.setReserveStableRateBorrowing(ids[i], true);
         }
@@ -169,6 +167,14 @@ contract GenericV3ListingEngine is IGenericV3ListingEngine {
         if (borrows[i].borrowableInIsolation) {
           POOL_CONFIGURATOR.setBorrowableInIsolation(ids[i], true);
         }
+
+        if (borrows[i].withSiloedBorrowing) {
+          POOL_CONFIGURATOR.setSiloedBorrowing(ids[i], true);
+        }
+      }
+
+      if (borrows[i].flashloanable) {
+        POOL_CONFIGURATOR.setReserveFlashLoaning(ids[i], true);
       }
     }
   }
@@ -195,6 +201,10 @@ contract GenericV3ListingEngine is IGenericV3ListingEngine {
           POOL_CONFIGURATOR.setDebtCeiling(ids[i], collaterals[i].debtCeiling);
         }
       }
+
+      if (collaterals[i].eModeCategory != 0) {
+        POOL_CONFIGURATOR.setAssetEModeCategory(ids[i], collaterals[i].eModeCategory);
+      }
     }
   }
 
@@ -214,8 +224,10 @@ contract GenericV3ListingEngine is IGenericV3ListingEngine {
       });
       borrows[i] = Borrow({
         enabledToBorrow: listings[i].enabledToBorrow,
+        flashloanable: listings[i].flashloanable,
         stableRateModeEnabled: listings[i].stableRateModeEnabled,
         borrowableInIsolation: listings[i].borrowableInIsolation,
+        withSiloedBorrowing: listings[i].withSiloedBorrowing,
         reserveFactor: listings[i].reserveFactor
       });
       collaterals[i] = Collateral({
@@ -223,7 +235,8 @@ contract GenericV3ListingEngine is IGenericV3ListingEngine {
         liqThreshold: listings[i].liqThreshold,
         liqBonus: listings[i].liqBonus,
         debtCeiling: listings[i].debtCeiling,
-        liqProtocolFee: listings[i].liqProtocolFee
+        liqProtocolFee: listings[i].liqProtocolFee,
+        eModeCategory: listings[i].eModeCategory
       });
       caps[i] = Caps({supplyCap: listings[i].supplyCap, borrowCap: listings[i].borrowCap});
     }
