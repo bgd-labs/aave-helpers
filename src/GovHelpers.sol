@@ -2,8 +2,11 @@
 pragma solidity >=0.7.5 <0.9.0;
 pragma abicoder v2;
 
-import 'forge-std/Vm.sol';
+import {Vm} from 'forge-std/Vm.sol';
+import {Test} from 'forge-std/Test.sol';
 import {AaveGovernanceV2, IAaveGovernanceV2, IExecutorWithTimelock} from 'aave-address-book/AaveGovernanceV2.sol';
+import {IPoolAddressesProvider} from 'aave-address-book/AaveV3.sol';
+import {ProxyHelpers} from './ProxyHelpers.sol';
 
 library GovHelpers {
   struct SPropCreateParams {
@@ -16,7 +19,8 @@ library GovHelpers {
     bytes32 ipfsHash;
   }
 
-  IAaveGovernanceV2 internal constant GOV = IAaveGovernanceV2(0xEC568fffba86c094cf06b22134B23074DFE2252c);
+  IAaveGovernanceV2 internal constant GOV =
+    IAaveGovernanceV2(0xEC568fffba86c094cf06b22134B23074DFE2252c);
 
   address public constant SHORT_EXECUTOR = 0xEE56e2B3D491590B5b31738cC34d5232F378a8D5;
 
@@ -71,5 +75,38 @@ library GovHelpers {
     returns (IAaveGovernanceV2.ProposalWithoutVotes memory)
   {
     return GOV.getProposalById(proposalId);
+  }
+}
+
+/**
+ * @dev Mock contract which allows performing a delegatecall to `execute`
+ * Intended to be used as replacement for L2 admins to mock governance/gnosis execution.
+ */
+contract MockExecutor {
+  function execute(address payload) public {
+    (bool success, ) = address(payload).delegatecall(abi.encodeWithSignature('execute()'));
+    require(success, 'PROPOSAL_EXECUTION_FAILED');
+  }
+}
+
+/**
+ * @dev Inheriting from this contract in a forge test allows to
+ * 1. Configure on the setUp() of the child contract an executor for governance proposals
+ *    (or any address with permissions) just by doing for example a `_selectPayloadExecutor(AaveGovernanceV2.SHORT_EXECUTOR)`
+ * 2. Afterwards, on a test you can just do `_executePayload(somePayloadAddress)`, and it will be executed via
+ *    DELEGATECALL on the address previously selected on step 1).
+ */
+abstract contract TestWithExecutor is Test {
+  MockExecutor internal _executor;
+
+  function _selectPayloadExecutor(address executor) internal {
+    MockExecutor mockExecutor = new MockExecutor();
+    vm.etch(executor, address(mockExecutor).code);
+
+    _executor = MockExecutor(executor);
+  }
+
+  function _executePayload(address payload) internal {
+    _executor.execute(payload);
   }
 }
