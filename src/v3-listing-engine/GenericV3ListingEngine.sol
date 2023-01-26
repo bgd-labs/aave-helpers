@@ -2,7 +2,7 @@
 pragma solidity ^0.8.12;
 
 import {IPoolConfigurator, IAaveOracle, ConfiguratorInputTypes} from 'aave-address-book/AaveV3.sol';
-import {IERC20} from '../interfaces/IERC20.sol';
+import {IERC20Metadata} from 'solidity-utils/contracts/oz-common/interfaces/IERC20Metadata.sol';
 import {IChainlinkAggregator} from '../interfaces/IChainlinkAggregator.sol';
 import {IGenericV3ListingEngine} from './IGenericV3ListingEngine.sol';
 
@@ -94,7 +94,7 @@ contract GenericV3ListingEngine is IGenericV3ListingEngine {
     ConfiguratorInputTypes.InitReserveInput[]
       memory initReserveInputs = new ConfiguratorInputTypes.InitReserveInput[](ids.length);
     for (uint256 i = 0; i < ids.length; i++) {
-      uint8 decimals = IERC20(ids[i]).decimals();
+      uint8 decimals = IERC20Metadata(ids[i]).decimals();
       require(decimals > 0, 'INVALID_ASSET_DECIMALS');
       require(basics[i].rateStrategy != address(0), 'ONLY_NONZERO_RATE_STRATEGY');
 
