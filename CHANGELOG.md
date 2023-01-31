@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.6.0](https://github.com/bgd-labs/aave-helpers/compare/v1.5.0...v1.6.0) (2023-01-31)
+
+
+### Features
+
+* v2 test base ([#40](https://github.com/bgd-labs/aave-helpers/issues/40)) ([2643d4f](https://github.com/bgd-labs/aave-helpers/commit/2643d4f07cc9fd669d780851705fb4d243a60a9d))
+
+
+### Bug Fixes
+
+* downgrade scripts ([#38](https://github.com/bgd-labs/aave-helpers/issues/38)) ([8d5c922](https://github.com/bgd-labs/aave-helpers/commit/8d5c922296a82991d93676475cf3d9c9952ed7e1)), closes [#37](https://github.com/bgd-labs/aave-helpers/issues/37)
+* use correct minimum version ([#37](https://github.com/bgd-labs/aave-helpers/issues/37)) ([1d1d286](https://github.com/bgd-labs/aave-helpers/commit/1d1d2864f1abda6582c315dff1bce3062cc38a14))
+
 ## [1.5.0](https://github.com/bgd-labs/aave-helpers/compare/v1.4.0...v1.5.0) (2023-01-26)
 
 
