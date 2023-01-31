@@ -2,7 +2,7 @@
 pragma solidity >=0.7.5 <0.9.0;
 
 import 'forge-std/Test.sol';
-import {IAaveOracle, IPool, IPoolAddressesProvider, IPoolDataProvider, IDefaultInterestRateStrategy, DataTypes} from 'aave-address-book/AaveV3.sol';
+import {IAaveOracle, ILendingPool, ILendingPoolAddressesProvider, IAaveProtocolDataProvider, DataTypes, TokenData, ILendingRateOracle, IDefaultInterestRateStrategy} from 'aave-address-book/AaveV2.sol';
 import {IERC20} from 'solidity-utils/contracts/oz-common/interfaces/IERC20.sol';
 import {IInitializableAdminUpgradeabilityProxy} from './interfaces/IInitializableAdminUpgradeabilityProxy.sol';
 
@@ -22,7 +22,6 @@ struct ReserveConfig {
   uint256 ltv;
   uint256 liquidationThreshold;
   uint256 liquidationBonus;
-  uint256 liquidationProtocolFee;
   uint256 reserveFactor;
   bool usageAsCollateralEnabled;
   bool borrowingEnabled;
@@ -30,25 +29,16 @@ struct ReserveConfig {
   bool stableBorrowRateEnabled;
   bool isActive;
   bool isFrozen;
-  bool isSiloed;
-  bool isBorrowableInIsolation;
-  bool isFlashloanable;
-  uint256 supplyCap;
-  uint256 borrowCap;
-  uint256 debtCeiling;
-  uint256 eModeCategory;
 }
 
 struct LocalVars {
-  IPoolDataProvider.TokenData[] reserves;
+  TokenData[] reserves;
   ReserveConfig[] configs;
 }
 
 struct InterestStrategyValues {
   address addressesProvider;
   uint256 optimalUsageRatio;
-  uint256 optimalStableToTotalDebtRatio;
-  uint256 baseStableBorrowRate;
   uint256 stableRateSlope1;
   uint256 stableRateSlope2;
   uint256 baseVariableBorrowRate;
@@ -56,7 +46,7 @@ struct InterestStrategyValues {
   uint256 variableRateSlope2;
 }
 
-contract ProtocolV3TestBase is Test {
+contract ProtocolV2TestBase is Test {
   address public constant ETH_MOCK_ADDRESS = 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE;
 
   address public constant EOA = 0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045;
@@ -66,15 +56,18 @@ contract ProtocolV3TestBase is Test {
    * @param reportName filename suffix for the generated reports.
    * @param pool the pool to be snapshotted
    */
-  function createConfigurationSnapshot(string memory reportName, IPool pool) public {
+  function createConfigurationSnapshot(string memory reportName, ILendingPool pool) public {
     string memory path = string(
       abi.encodePacked('./reports/', vm.toString(address(pool)), '_', reportName, '.md')
     );
     vm.writeFile(path, '# Report\n\n');
     ReserveConfig[] memory configs = _getReservesConfigs(pool);
-    _writeReserveConfigs(path, configs);
+    ILendingPoolAddressesProvider addressesProvider = ILendingPoolAddressesProvider(
+      pool.getAddressesProvider()
+    );
+    ILendingRateOracle oracle = ILendingRateOracle(addressesProvider.getLendingRateOracle());
+    _writeReserveConfigs(path, configs, oracle);
     _writeStrategyConfigs(path, configs);
-    _writeEModeConfigs(path, configs, pool);
   }
 
   /**
@@ -82,7 +75,7 @@ contract ProtocolV3TestBase is Test {
    * @param pool the pool that should be tested
    * @param user the user to run the tests for
    */
-  function e2eTest(IPool pool, address user) public {
+  function e2eTest(ILendingPool pool, address user) public {
     ReserveConfig[] memory configs = _getReservesConfigs(pool);
     deal(user, 1000 ether);
     uint256 snapshot = vm.snapshot();
@@ -122,7 +115,7 @@ contract ProtocolV3TestBase is Test {
    */
   function _supplyWithdrawFlow(
     ReserveConfig[] memory configs,
-    IPool pool,
+    ILendingPool pool,
     address user
   ) internal {
     // test all basic interactions
@@ -146,7 +139,7 @@ contract ProtocolV3TestBase is Test {
    */
   function _variableBorrowFlow(
     ReserveConfig[] memory configs,
-    IPool pool,
+    ILendingPool pool,
     address user
   ) internal {
     // put 1M whatever collateral, which should be enough to borrow 1 of each
@@ -168,7 +161,7 @@ contract ProtocolV3TestBase is Test {
    */
   function _stableBorrowFlow(
     ReserveConfig[] memory configs,
-    IPool pool,
+    ILendingPool pool,
     address user
   ) internal {
     // put 1M whatever collateral, which should be enough to borrow 1 of each
@@ -187,7 +180,7 @@ contract ProtocolV3TestBase is Test {
 
   function _deposit(
     ReserveConfig memory config,
-    IPool pool,
+    ILendingPool pool,
     address user,
     uint256 amount
   ) internal {
@@ -204,7 +197,7 @@ contract ProtocolV3TestBase is Test {
 
   function _withdraw(
     ReserveConfig memory config,
-    IPool pool,
+    ILendingPool pool,
     address user,
     uint256 amount
   ) internal returns (uint256) {
@@ -224,7 +217,7 @@ contract ProtocolV3TestBase is Test {
 
   function _borrow(
     ReserveConfig memory config,
-    IPool pool,
+    ILendingPool pool,
     address user,
     uint256 amount,
     bool stable
@@ -241,7 +234,7 @@ contract ProtocolV3TestBase is Test {
 
   function _repay(
     ReserveConfig memory config,
-    IPool pool,
+    ILendingPool pool,
     address user,
     uint256 amount,
     bool stable
@@ -280,61 +273,18 @@ contract ProtocolV3TestBase is Test {
     return false;
   }
 
-  function _writeEModeConfigs(
-    string memory path,
-    ReserveConfig[] memory configs,
-    IPool pool
-  ) internal {
-    vm.writeLine(path, '## EMode categories\n\n');
-    vm.writeLine(
-      path,
-      '| id | label | ltv | liquidationThreshold | liquidationBonus | priceSource |'
-    );
-    vm.writeLine(path, '|---|---|---|---|---|---|');
-    uint256[] memory usedCategories = new uint256[](configs.length);
-    for (uint256 i = 0; i < configs.length; i++) {
-      if (!_isInUint256Array(usedCategories, configs[i].eModeCategory)) {
-        usedCategories[i] = configs[i].eModeCategory;
-        DataTypes.EModeCategory memory category = pool.getEModeCategoryData(
-          uint8(configs[i].eModeCategory)
-        );
-        vm.writeLine(
-          path,
-          string(
-            abi.encodePacked(
-              '| ',
-              vm.toString(configs[i].eModeCategory),
-              ' | ',
-              category.label,
-              ' | ',
-              vm.toString(category.ltv),
-              ' | ',
-              vm.toString(category.liquidationThreshold),
-              ' | ',
-              vm.toString(category.liquidationBonus),
-              ' | ',
-              vm.toString(category.priceSource),
-              ' |'
-            )
-          )
-        );
-      }
-    }
-    vm.writeLine(path, '\n');
-  }
-
   function _writeStrategyConfigs(string memory path, ReserveConfig[] memory configs) internal {
     vm.writeLine(path, '## InterestRateStrategies\n');
     vm.writeLine(
       path,
       string(
         abi.encodePacked(
-          '| strategy | getBaseStableBorrowRate | getStableRateSlope1 | getStableRateSlope2 | optimalStableToTotal | maxStabletoTotalExcess ',
-          '| getBaseVariableBorrowRate | getVariableRateSlope1 | getVariableRateSlope2 | optimalUsageRatio | maxExcessUsageRatio |'
+          '| strategy | getStableRateSlope1 | getStableRateSlope2 ',
+          '| getBaseVariableBorrowRate | getVariableRateSlope1 | getVariableRateSlope2 | optimalUtilizationRatio | excessUtilizationRatio |'
         )
       )
     );
-    vm.writeLine(path, '|---|---|---|---|---|---|---|---|---|---|---|');
+    vm.writeLine(path, '|---|---|---|---|---|---|---|---|');
     address[] memory usedStrategies = new address[](configs.length);
     for (uint256 i = 0; i < configs.length; i++) {
       if (!_isInAddressArray(usedStrategies, configs[i].interestRateStrategy)) {
@@ -350,27 +300,21 @@ contract ProtocolV3TestBase is Test {
                 '| ',
                 vm.toString(address(strategy)),
                 ' | ',
-                vm.toString(strategy.getBaseStableBorrowRate()),
+                vm.toString(strategy.stableRateSlope1()),
                 ' | ',
-                vm.toString(strategy.getStableRateSlope1()),
-                ' | ',
-                vm.toString(strategy.getStableRateSlope2()),
-                ' | ',
-                vm.toString(strategy.OPTIMAL_STABLE_TO_TOTAL_DEBT_RATIO()),
-                ' | ',
-                vm.toString(strategy.MAX_EXCESS_STABLE_TO_TOTAL_DEBT_RATIO()),
+                vm.toString(strategy.stableRateSlope2()),
                 ' | '
               ),
               abi.encodePacked(
-                vm.toString(strategy.getBaseVariableBorrowRate()),
+                vm.toString(strategy.baseVariableBorrowRate()),
                 ' | ',
-                vm.toString(strategy.getVariableRateSlope1()),
+                vm.toString(strategy.variableRateSlope1()),
                 ' | ',
-                vm.toString(strategy.getVariableRateSlope2()),
+                vm.toString(strategy.variableRateSlope2()),
                 ' | ',
-                vm.toString(strategy.OPTIMAL_USAGE_RATIO()),
+                vm.toString(strategy.OPTIMAL_UTILIZATION_RATE()),
                 ' | ',
-                vm.toString(strategy.MAX_EXCESS_USAGE_RATIO()),
+                vm.toString(strategy.EXCESS_UTILIZATION_RATE()),
                 ' |'
               )
             )
@@ -381,15 +325,19 @@ contract ProtocolV3TestBase is Test {
     vm.writeLine(path, '\n');
   }
 
-  function _writeReserveConfigs(string memory path, ReserveConfig[] memory configs) internal {
+  function _writeReserveConfigs(
+    string memory path,
+    ReserveConfig[] memory configs,
+    ILendingRateOracle oracle
+  ) internal {
     vm.writeLine(path, '## Reserve Configurations\n');
     vm.writeLine(
       path,
       string(
         abi.encodePacked(
           '| symbol | underlying | aToken | stableDebtToken | variableDebtToken | decimals | ltv | liquidationThreshold | liquidationBonus | ',
-          'liquidationProtocolFee | reserveFactor | usageAsCollateralEnabled | borrowingEnabled | stableBorrowRateEnabled | supplyCap | borrowCap | debtCeiling | eModeCategory | ',
-          'interestRateStrategy | isActive | isFrozen | isSiloed | isBorrowableInIsolation | isFlashloanable |'
+          'reserveFactor | usageAsCollateralEnabled | borrowingEnabled | stableBorrowRateEnabled | ',
+          'interestRateStrategy | isActive | isFrozen | baseStableBorrowRate |'
         )
       )
     );
@@ -397,9 +345,8 @@ contract ProtocolV3TestBase is Test {
       path,
       string(
         abi.encodePacked(
-          '|---|---|---|---|---|---|---|---|---',
-          '|---|---|---|---|---|---|---|---|---',
-          '|---|---|---|---|---|---|'
+          '|---|---|---|---|---|---|---|---',
+          '|---|---|---|---|---|---|---|---|---|'
         )
       )
     );
@@ -431,8 +378,6 @@ contract ProtocolV3TestBase is Test {
               ' | ',
               vm.toString(config.liquidationBonus),
               ' | ',
-              vm.toString(config.liquidationProtocolFee),
-              ' | ',
               vm.toString(config.reserveFactor),
               ' | ',
               vm.toString(config.usageAsCollateralEnabled),
@@ -442,14 +387,6 @@ contract ProtocolV3TestBase is Test {
               vm.toString(config.borrowingEnabled),
               ' | ',
               vm.toString(config.stableBorrowRateEnabled),
-              ' | ',
-              vm.toString(config.supplyCap),
-              ' | ',
-              vm.toString(config.borrowCap),
-              ' | ',
-              vm.toString(config.debtCeiling),
-              ' | ',
-              vm.toString(config.eModeCategory),
               ' | '
             ),
             abi.encodePacked(
@@ -459,11 +396,7 @@ contract ProtocolV3TestBase is Test {
               ' | ',
               vm.toString(config.isFrozen),
               ' | ',
-              vm.toString(config.isSiloed),
-              ' |',
-              vm.toString(config.isBorrowableInIsolation),
-              ' |',
-              vm.toString(config.isFlashloanable),
+              vm.toString(oracle.getMarketBorrowRate(config.underlying)),
               ' |'
             )
           )
@@ -473,9 +406,15 @@ contract ProtocolV3TestBase is Test {
     vm.writeLine(path, '\n');
   }
 
-  function _getReservesConfigs(IPool pool) internal view returns (ReserveConfig[] memory) {
-    IPoolAddressesProvider addressesProvider = IPoolAddressesProvider(pool.ADDRESSES_PROVIDER());
-    IPoolDataProvider poolDataProvider = IPoolDataProvider(addressesProvider.getPoolDataProvider());
+  function _getReservesConfigs(ILendingPool pool) internal view returns (ReserveConfig[] memory) {
+    ILendingPoolAddressesProvider addressesProvider = ILendingPoolAddressesProvider(
+      pool.getAddressesProvider()
+    );
+    IAaveProtocolDataProvider poolDataProvider = IAaveProtocolDataProvider(
+      addressesProvider.getAddress(
+        0x0100000000000000000000000000000000000000000000000000000000000000
+      )
+    );
     LocalVars memory vars;
 
     vars.reserves = poolDataProvider.getAllReservesTokens();
@@ -496,7 +435,7 @@ contract ProtocolV3TestBase is Test {
     return vars.configs;
   }
 
-  function _getStructReserveTokens(IPoolDataProvider pdp, address underlyingAddress)
+  function _getStructReserveTokens(IAaveProtocolDataProvider pdp, address underlyingAddress)
     internal
     view
     returns (ReserveTokens memory)
@@ -509,9 +448,9 @@ contract ProtocolV3TestBase is Test {
   }
 
   function _getStructReserveConfig(
-    IPool pool,
-    IPoolDataProvider pdp,
-    IPoolDataProvider.TokenData memory reserve
+    ILendingPool pool,
+    IAaveProtocolDataProvider pdp,
+    TokenData memory reserve
   ) internal view virtual returns (ReserveConfig memory) {
     ReserveConfig memory localConfig;
     (
@@ -541,20 +480,6 @@ contract ProtocolV3TestBase is Test {
       .interestRateStrategyAddress;
     localConfig.isActive = isActive;
     localConfig.isFrozen = isFrozen;
-    localConfig.isSiloed = pdp.getSiloedBorrowing(reserve.tokenAddress);
-    (localConfig.borrowCap, localConfig.supplyCap) = pdp.getReserveCaps(reserve.tokenAddress);
-    localConfig.debtCeiling = pdp.getDebtCeiling(reserve.tokenAddress);
-    localConfig.eModeCategory = pdp.getReserveEModeCategory(reserve.tokenAddress);
-    localConfig.liquidationProtocolFee = pdp.getLiquidationProtocolFee(reserve.tokenAddress);
-
-    // TODO this should be improved, but at the moment is simpler to avoid importing the
-    // ReserveConfiguration library
-    localConfig.isBorrowableInIsolation =
-      (pool.getConfiguration(reserve.tokenAddress).data &
-        ~uint256(0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFDFFFFFFFFFFFFFFF)) !=
-      0;
-
-    localConfig.isFlashloanable = false; // TODO pdp.getFlashLoanEnabled(reserve.tokenAddress) once updated address book
 
     return localConfig;
   }
@@ -572,21 +497,13 @@ contract ProtocolV3TestBase is Test {
         ltv: config.ltv,
         liquidationThreshold: config.liquidationThreshold,
         liquidationBonus: config.liquidationBonus,
-        liquidationProtocolFee: config.liquidationProtocolFee,
         reserveFactor: config.reserveFactor,
         usageAsCollateralEnabled: config.usageAsCollateralEnabled,
         borrowingEnabled: config.borrowingEnabled,
         interestRateStrategy: config.interestRateStrategy,
         stableBorrowRateEnabled: config.stableBorrowRateEnabled,
         isActive: config.isActive,
-        isFrozen: config.isFrozen,
-        isSiloed: config.isSiloed,
-        isBorrowableInIsolation: config.isBorrowableInIsolation,
-        isFlashloanable: config.isFlashloanable,
-        supplyCap: config.supplyCap,
-        borrowCap: config.borrowCap,
-        debtCeiling: config.debtCeiling,
-        eModeCategory: config.eModeCategory
+        isFrozen: config.isFrozen
       });
   }
 
@@ -629,21 +546,13 @@ contract ProtocolV3TestBase is Test {
     console.log('LTV ', config.ltv);
     console.log('Liquidation Threshold ', config.liquidationThreshold);
     console.log('Liquidation Bonus ', config.liquidationBonus);
-    console.log('Liquidation protocol fee ', config.liquidationProtocolFee);
     console.log('Reserve Factor ', config.reserveFactor);
     console.log('Usage as collateral enabled ', (config.usageAsCollateralEnabled) ? 'Yes' : 'No');
     console.log('Borrowing enabled ', (config.borrowingEnabled) ? 'Yes' : 'No');
     console.log('Stable borrow rate enabled ', (config.stableBorrowRateEnabled) ? 'Yes' : 'No');
-    console.log('Supply cap ', config.supplyCap);
-    console.log('Borrow cap ', config.borrowCap);
-    console.log('Debt ceiling ', config.debtCeiling);
-    console.log('eMode category ', config.eModeCategory);
     console.log('Interest rate strategy ', config.interestRateStrategy);
     console.log('Is active ', (config.isActive) ? 'Yes' : 'No');
     console.log('Is frozen ', (config.isFrozen) ? 'Yes' : 'No');
-    console.log('Is siloed ', (config.isSiloed) ? 'Yes' : 'No');
-    console.log('Is borrowable in isolation ', (config.isBorrowableInIsolation) ? 'Yes' : 'No');
-    console.log('Is flashloanable ', (config.isFlashloanable) ? 'Yes' : 'No');
     console.log('-----');
     console.log('-----');
   }
@@ -672,10 +581,6 @@ contract ProtocolV3TestBase is Test {
       '_validateConfigsInAave: INVALID_LIQ_BONUS'
     );
     require(
-      config.liquidationProtocolFee == expectedConfig.liquidationProtocolFee,
-      '_validateConfigsInAave: INVALID_LIQUIDATION_PROTOCOL_FEE'
-    );
-    require(
       config.reserveFactor == expectedConfig.reserveFactor,
       '_validateConfigsInAave: INVALID_RESERVE_FACTOR'
     );
@@ -701,34 +606,6 @@ contract ProtocolV3TestBase is Test {
       '_validateConfigsInAave: INVALID_IS_FROZEN'
     );
     require(
-      config.isSiloed == expectedConfig.isSiloed,
-      '_validateConfigsInAave: INVALID_IS_SILOED'
-    );
-    require(
-      config.isBorrowableInIsolation == expectedConfig.isBorrowableInIsolation,
-      '_validateConfigsInAave: INVALID_IS_BORROWABLE_IN_ISOLATION'
-    );
-    require(
-      config.isFlashloanable == expectedConfig.isFlashloanable,
-      '_validateConfigsInAave: INVALID_IS_FLASHLOANABLE'
-    );
-    require(
-      config.supplyCap == expectedConfig.supplyCap,
-      '_validateConfigsInAave: INVALID_SUPPLY_CAP'
-    );
-    require(
-      config.borrowCap == expectedConfig.borrowCap,
-      '_validateConfigsInAave: INVALID_BORROW_CAP'
-    );
-    require(
-      config.debtCeiling == expectedConfig.debtCeiling,
-      '_validateConfigsInAave: INVALID_DEBT_CEILING'
-    );
-    require(
-      config.eModeCategory == expectedConfig.eModeCategory,
-      '_validateConfigsInAave: INVALID_EMODE_CATEGORY'
-    );
-    require(
       config.interestRateStrategy == expectedConfig.interestRateStrategy,
       '_validateConfigsInAave: INVALID_INTEREST_RATE_STRATEGY'
     );
@@ -749,40 +626,31 @@ contract ProtocolV3TestBase is Test {
     );
 
     require(
-      strategy.OPTIMAL_USAGE_RATIO() == expectedStrategyValues.optimalUsageRatio,
+      strategy.OPTIMAL_UTILIZATION_RATE() == expectedStrategyValues.optimalUsageRatio,
       '_validateInterestRateStrategy() : INVALID_OPTIMAL_RATIO'
     );
     require(
-      strategy.OPTIMAL_STABLE_TO_TOTAL_DEBT_RATIO() ==
-        expectedStrategyValues.optimalStableToTotalDebtRatio,
-      '_validateInterestRateStrategy() : INVALID_OPTIMAL_STABLE_TO_TOTAL_DEBT_RATIO'
-    );
-    require(
-      address(strategy.ADDRESSES_PROVIDER()) == expectedStrategyValues.addressesProvider,
+      address(strategy.addressesProvider()) == expectedStrategyValues.addressesProvider,
       '_validateInterestRateStrategy() : INVALID_ADDRESSES_PROVIDER'
     );
     require(
-      strategy.getBaseVariableBorrowRate() == expectedStrategyValues.baseVariableBorrowRate,
+      strategy.baseVariableBorrowRate() == expectedStrategyValues.baseVariableBorrowRate,
       '_validateInterestRateStrategy() : INVALID_BASE_VARIABLE_BORROW'
     );
     require(
-      strategy.getBaseStableBorrowRate() == expectedStrategyValues.baseStableBorrowRate,
-      '_validateInterestRateStrategy() : INVALID_BASE_VARIABLE_BORROW'
-    );
-    require(
-      strategy.getStableRateSlope1() == expectedStrategyValues.stableRateSlope1,
+      strategy.stableRateSlope1() == expectedStrategyValues.stableRateSlope1,
       '_validateInterestRateStrategy() : INVALID_STABLE_SLOPE_1'
     );
     require(
-      strategy.getStableRateSlope2() == expectedStrategyValues.stableRateSlope2,
+      strategy.stableRateSlope2() == expectedStrategyValues.stableRateSlope2,
       '_validateInterestRateStrategy() : INVALID_STABLE_SLOPE_2'
     );
     require(
-      strategy.getVariableRateSlope1() == expectedStrategyValues.variableRateSlope1,
+      strategy.variableRateSlope1() == expectedStrategyValues.variableRateSlope1,
       '_validateInterestRateStrategy() : INVALID_VARIABLE_SLOPE_1'
     );
     require(
-      strategy.getVariableRateSlope2() == expectedStrategyValues.variableRateSlope2,
+      strategy.variableRateSlope2() == expectedStrategyValues.variableRateSlope2,
       '_validateInterestRateStrategy() : INVALID_VARIABLE_SLOPE_2'
     );
   }
@@ -851,10 +719,6 @@ contract ProtocolV3TestBase is Test {
       '_noReservesConfigsChangesApartNewListings() : UNEXPECTED_LIQ_BONUS_CHANGED'
     );
     require(
-      config1.liquidationProtocolFee == config2.liquidationProtocolFee,
-      '_noReservesConfigsChangesApartNewListings() : UNEXPECTED_LIQ_PROTOCOL_FEE_CHANGED'
-    );
-    require(
       config1.reserveFactor == config2.reserveFactor,
       '_noReservesConfigsChangesApartNewListings() : UNEXPECTED_RESERVE_FACTOR_CHANGED'
     );
@@ -882,34 +746,6 @@ contract ProtocolV3TestBase is Test {
       config1.isFrozen == config2.isFrozen,
       '_noReservesConfigsChangesApartNewListings() : UNEXPECTED_IS_FROZEN_CHANGED'
     );
-    require(
-      config1.isSiloed == config2.isSiloed,
-      '_noReservesConfigsChangesApartNewListings() : UNEXPECTED_IS_SILOED_CHANGED'
-    );
-    require(
-      config1.isBorrowableInIsolation == config2.isBorrowableInIsolation,
-      '_noReservesConfigsChangesApartNewListings() : UNEXPECTED_IS_BORROWABLE_IN_ISOLATION_CHANGED'
-    );
-    require(
-      config1.isFlashloanable == config2.isFlashloanable,
-      '_noReservesConfigsChangesApartNewListings() : UNEXPECTED_IS_FLASHLOANABLE_CHANGED'
-    );
-    require(
-      config1.supplyCap == config2.supplyCap,
-      '_noReservesConfigsChangesApartNewListings() : UNEXPECTED_SUPPLY_CAP_CHANGED'
-    );
-    require(
-      config1.borrowCap == config2.borrowCap,
-      '_noReservesConfigsChangesApartNewListings() : UNEXPECTED_BORROW_CAP_CHANGED'
-    );
-    require(
-      config1.debtCeiling == config2.debtCeiling,
-      '_noReservesConfigsChangesApartNewListings() : UNEXPECTED_DEBT_CEILING_CHANGED'
-    );
-    require(
-      config1.eModeCategory == config2.eModeCategory,
-      '_noReservesConfigsChangesApartNewListings() : UNEXPECTED_E_MODE_CATEGORY_CHANGED'
-    );
   }
 
   function _validateCountOfListings(
@@ -924,11 +760,11 @@ contract ProtocolV3TestBase is Test {
   }
 
   function _validateReserveTokensImpls(
-    IPoolAddressesProvider addressProvider,
+    ILendingPoolAddressesProvider addressProvider,
     ReserveConfig memory config,
     ReserveTokens memory expectedImpls
   ) internal {
-    address poolConfigurator = addressProvider.getPoolConfigurator();
+    address poolConfigurator = addressProvider.getLendingPoolConfigurator();
     vm.startPrank(poolConfigurator);
     require(
       IInitializableAdminUpgradeabilityProxy(config.aToken).implementation() ==
@@ -949,7 +785,7 @@ contract ProtocolV3TestBase is Test {
   }
 
   function _validateAssetSourceOnOracle(
-    IPoolAddressesProvider addressProvider,
+    ILendingPoolAddressesProvider addressProvider,
     address asset,
     address expectedSource
   ) internal view {
@@ -959,85 +795,5 @@ contract ProtocolV3TestBase is Test {
       oracle.getSourceOfAsset(asset) == expectedSource,
       '_validateAssetSourceOnOracle() : INVALID_PRICE_SOURCE'
     );
-  }
-
-  function _validateAssetsOnEmodeCategory(
-    uint256 category,
-    ReserveConfig[] memory assetsConfigs,
-    string[] memory expectedAssets
-  ) internal pure {
-    string[] memory assetsInCategory = new string[](assetsConfigs.length);
-
-    uint256 countCategory;
-    for (uint256 i = 0; i < assetsConfigs.length; i++) {
-      if (assetsConfigs[i].eModeCategory == category) {
-        assetsInCategory[countCategory] = assetsConfigs[i].symbol;
-        require(
-          keccak256(bytes(assetsInCategory[countCategory])) ==
-            keccak256(bytes(expectedAssets[countCategory])),
-          '_getAssetOnEmodeCategory(): INCONSISTENT_ASSETS'
-        );
-        countCategory++;
-        if (countCategory > expectedAssets.length) {
-          revert('_getAssetOnEmodeCategory(): MORE_ASSETS_IN_CATEGORY_THAN_EXPECTED');
-        }
-      }
-    }
-    if (countCategory < expectedAssets.length) {
-      revert('_getAssetOnEmodeCategory(): LESS_ASSETS_IN_CATEGORY_THAN_EXPECTED');
-    }
-  }
-}
-
-contract ProtocolV3_0_1TestBase is ProtocolV3TestBase {
-  function _getStructReserveConfig(
-    IPool pool,
-    IPoolDataProvider pdp,
-    IPoolDataProvider.TokenData memory reserve
-  ) internal view override returns (ReserveConfig memory) {
-    ReserveConfig memory localConfig;
-    (
-      uint256 decimals,
-      uint256 ltv,
-      uint256 liquidationThreshold,
-      uint256 liquidationBonus,
-      uint256 reserveFactor,
-      bool usageAsCollateralEnabled,
-      bool borrowingEnabled,
-      bool stableBorrowRateEnabled,
-      bool isActive,
-      bool isFrozen
-    ) = pdp.getReserveConfigurationData(reserve.tokenAddress);
-    localConfig.symbol = reserve.symbol;
-    localConfig.underlying = reserve.tokenAddress;
-    localConfig.decimals = decimals;
-    localConfig.ltv = ltv;
-    localConfig.liquidationThreshold = liquidationThreshold;
-    localConfig.liquidationBonus = liquidationBonus;
-    localConfig.reserveFactor = reserveFactor;
-    localConfig.usageAsCollateralEnabled = usageAsCollateralEnabled;
-    localConfig.borrowingEnabled = borrowingEnabled;
-    localConfig.stableBorrowRateEnabled = stableBorrowRateEnabled;
-    localConfig.interestRateStrategy = pool
-      .getReserveData(reserve.tokenAddress)
-      .interestRateStrategyAddress;
-    localConfig.isActive = isActive;
-    localConfig.isFrozen = isFrozen;
-    localConfig.isSiloed = pdp.getSiloedBorrowing(reserve.tokenAddress);
-    (localConfig.borrowCap, localConfig.supplyCap) = pdp.getReserveCaps(reserve.tokenAddress);
-    localConfig.debtCeiling = pdp.getDebtCeiling(reserve.tokenAddress);
-    localConfig.eModeCategory = pdp.getReserveEModeCategory(reserve.tokenAddress);
-    localConfig.liquidationProtocolFee = pdp.getLiquidationProtocolFee(reserve.tokenAddress);
-
-    // TODO this should be improved, but at the moment is simpler to avoid importing the
-    // ReserveConfiguration library
-    localConfig.isBorrowableInIsolation =
-      (pool.getConfiguration(reserve.tokenAddress).data &
-        ~uint256(0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFDFFFFFFFFFFFFFFF)) !=
-      0;
-
-    localConfig.isFlashloanable = pdp.getFlashLoanEnabled(reserve.tokenAddress);
-
-    return localConfig;
   }
 }
