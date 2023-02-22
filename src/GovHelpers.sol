@@ -4,6 +4,7 @@ pragma abicoder v2;
 
 import {Vm} from 'forge-std/Vm.sol';
 import {Test} from 'forge-std/Test.sol';
+import {console2} from 'forge-std/console2.sol';
 import {AaveGovernanceV2, IAaveGovernanceV2, IExecutorWithTimelock} from 'aave-address-book/AaveGovernanceV2.sol';
 import {IPoolAddressesProvider} from 'aave-address-book/AaveV3.sol';
 import {AaveMisc} from 'aave-address-book/AaveMisc.sol';
@@ -112,6 +113,19 @@ library GovHelpers {
       withDelegatecalls[i] = true;
     }
 
+    console2.logBytes(
+      abi.encodeWithSelector(
+        AaveGovernanceV2.GOV.create.selector,
+        IExecutorWithTimelock(executor),
+        targets,
+        values,
+        signatures,
+        calldatas,
+        withDelegatecalls,
+        ipfsHash
+      )
+    );
+
     return
       AaveGovernanceV2.GOV.create(
         IExecutorWithTimelock(executor),
@@ -182,12 +196,284 @@ library GovHelpers {
 
 /**
  * @dev Mock contract which allows performing a delegatecall to `execute`
- * Intended to be used as replacement for L2 admins to mock governance/gnosis execution.
+ * Intended to be used as replacement for L2 admins/executors to mock governance/gnosis execution.
  */
 contract MockExecutor {
+  error OnlyQueuedActions();
+  error InvalidActionsSetId();
+  error InsufficientBalance();
+  error FailedActionExecution();
+  error DuplicateAction();
+  error InconsistentParamsLength();
+  error EmptyTargets();
+
+  /**
+   * @dev Emitted when an ActionsSet is queued
+   * @param id Id of the ActionsSet
+   * @param targets Array of targets to be called by the actions set
+   * @param values Array of values to pass in each call by the actions set
+   * @param signatures Array of function signatures to encode in each call by the actions set
+   * @param calldatas Array of calldata to pass in each call by the actions set
+   * @param withDelegatecalls Array of whether to delegatecall for each call of the actions set
+   * @param executionTime The timestamp at which this actions set can be executed
+   **/
+  event ActionsSetQueued(
+    uint256 indexed id,
+    address[] targets,
+    uint256[] values,
+    string[] signatures,
+    bytes[] calldatas,
+    bool[] withDelegatecalls,
+    uint256 executionTime
+  );
+
+  /**
+   * @dev Emitted when an ActionsSet is successfully executed
+   * @param id Id of the ActionsSet
+   * @param initiatorExecution The address that triggered the ActionsSet execution
+   * @param returnedData The returned data from the ActionsSet execution
+   **/
+  event ActionsSetExecuted(
+    uint256 indexed id,
+    address indexed initiatorExecution,
+    bytes[] returnedData
+  );
+
+  /**
+   * @notice This struct contains the data needed to execute a specified set of actions
+   * @param targets Array of targets to call
+   * @param values Array of values to pass in each call
+   * @param signatures Array of function signatures to encode in each call (can be empty)
+   * @param calldatas Array of calldatas to pass in each call, appended to the signature at the same array index if not empty
+   * @param withDelegateCalls Array of whether to delegatecall for each call
+   * @param executionTime Timestamp starting from which the actions set can be executed
+   * @param executed True if the actions set has been executed, false otherwise
+   * @param canceled True if the actions set has been canceled, false otherwise
+   */
+  struct ActionsSet {
+    address[] targets;
+    uint256[] values;
+    string[] signatures;
+    bytes[] calldatas;
+    bool[] withDelegatecalls;
+    uint256 executionTime;
+    bool executed;
+    bool canceled;
+  }
+
+  /**
+   * @notice This enum contains all possible actions set states
+   */
+  enum ActionsSetState {
+    Queued,
+    Executed,
+    Canceled,
+    Expired
+  }
+
+  // Time between queuing and execution
+  uint256 private _delay;
+  // Time after the execution time during which the actions set can be executed
+  uint256 private _gracePeriod;
+  // Minimum allowed delay
+  uint256 private _minimumDelay;
+  // Maximum allowed delay
+  uint256 private _maximumDelay;
+  // Address with the ability of canceling actions sets
+  address private _guardian;
+
+  // Number of actions sets
+  uint256 private _actionsSetCounter;
+  // Map of registered actions sets (id => ActionsSet)
+  mapping(uint256 => ActionsSet) private _actionsSets;
+  // Map of queued actions (actionHash => isQueued)
+  mapping(bytes32 => bool) private _queuedActions;
+
+  function execute(uint256 actionsSetId) external payable {
+    if (getCurrentState(actionsSetId) != ActionsSetState.Queued) revert OnlyQueuedActions();
+
+    ActionsSet storage actionsSet = _actionsSets[actionsSetId];
+    actionsSet.executed = true;
+    uint256 actionCount = actionsSet.targets.length;
+
+    bytes[] memory returnedData = new bytes[](actionCount);
+    for (uint256 i = 0; i < actionCount; ) {
+      returnedData[i] = _executeTransaction(
+        actionsSet.targets[i],
+        actionsSet.values[i],
+        actionsSet.signatures[i],
+        actionsSet.calldatas[i],
+        actionsSet.executionTime,
+        actionsSet.withDelegatecalls[i]
+      );
+      unchecked {
+        ++i;
+      }
+    }
+
+    emit ActionsSetExecuted(actionsSetId, msg.sender, returnedData);
+  }
+
+  /**
+   * @notice Non-standard functionality used to skip governance and just execute a payload.
+   */
   function execute(address payload) public {
     (bool success, ) = address(payload).delegatecall(abi.encodeWithSignature('execute()'));
     require(success, 'PROPOSAL_EXECUTION_FAILED');
+  }
+
+  /**
+   * @notice Queue an ActionsSet
+   * @dev If a signature is empty, calldata is used for the execution, calldata is appended to signature otherwise
+   * @param targets Array of targets to be called by the actions set
+   * @param values Array of values to pass in each call by the actions set
+   * @param signatures Array of function signatures to encode in each call (can be empty)
+   * @param calldatas Array of calldata to pass in each call (can be empty)
+   * @param withDelegatecalls Array of whether to delegatecall for each call
+   **/
+  function queue(
+    address[] memory targets,
+    uint256[] memory values,
+    string[] memory signatures,
+    bytes[] memory calldatas,
+    bool[] memory withDelegatecalls
+  ) public {
+    if (targets.length == 0) revert EmptyTargets();
+    uint256 targetsLength = targets.length;
+    if (
+      targetsLength != values.length ||
+      targetsLength != signatures.length ||
+      targetsLength != calldatas.length ||
+      targetsLength != withDelegatecalls.length
+    ) revert InconsistentParamsLength();
+
+    uint256 actionsSetId = _actionsSetCounter;
+    uint256 executionTime = block.timestamp + _delay;
+    unchecked {
+      ++_actionsSetCounter;
+    }
+
+    for (uint256 i = 0; i < targetsLength; ) {
+      bytes32 actionHash = keccak256(
+        abi.encode(
+          targets[i],
+          values[i],
+          signatures[i],
+          calldatas[i],
+          executionTime,
+          withDelegatecalls[i]
+        )
+      );
+      if (isActionQueued(actionHash)) revert DuplicateAction();
+      _queuedActions[actionHash] = true;
+      unchecked {
+        ++i;
+      }
+    }
+
+    ActionsSet storage actionsSet = _actionsSets[actionsSetId];
+    actionsSet.targets = targets;
+    actionsSet.values = values;
+    actionsSet.signatures = signatures;
+    actionsSet.calldatas = calldatas;
+    actionsSet.withDelegatecalls = withDelegatecalls;
+    actionsSet.executionTime = executionTime;
+
+    emit ActionsSetQueued(
+      actionsSetId,
+      targets,
+      values,
+      signatures,
+      calldatas,
+      withDelegatecalls,
+      executionTime
+    );
+  }
+
+  function getCurrentState(uint256 actionsSetId) public view returns (ActionsSetState) {
+    if (_actionsSetCounter <= actionsSetId) revert InvalidActionsSetId();
+    ActionsSet storage actionsSet = _actionsSets[actionsSetId];
+    if (actionsSet.canceled) {
+      return ActionsSetState.Canceled;
+    } else if (actionsSet.executed) {
+      return ActionsSetState.Executed;
+    } else if (block.timestamp > actionsSet.executionTime + _gracePeriod) {
+      return ActionsSetState.Expired;
+    } else {
+      return ActionsSetState.Queued;
+    }
+  }
+
+  function isActionQueued(bytes32 actionHash) public view returns (bool) {
+    return _queuedActions[actionHash];
+  }
+
+  function _executeTransaction(
+    address target,
+    uint256 value,
+    string memory signature,
+    bytes memory data,
+    uint256 executionTime,
+    bool withDelegatecall
+  ) internal returns (bytes memory) {
+    if (address(this).balance < value) revert InsufficientBalance();
+
+    bytes32 actionHash = keccak256(
+      abi.encode(target, value, signature, data, executionTime, withDelegatecall)
+    );
+    _queuedActions[actionHash] = false;
+
+    bytes memory callData;
+    if (bytes(signature).length == 0) {
+      callData = data;
+    } else {
+      callData = abi.encodePacked(bytes4(keccak256(bytes(signature))), data);
+    }
+
+    bool success;
+    bytes memory resultData;
+    if (withDelegatecall) {
+      (success, resultData) = this.executeDelegateCall{value: value}(target, callData);
+    } else {
+      // solium-disable-next-line security/no-call-value
+      (success, resultData) = target.call{value: value}(callData);
+    }
+    return _verifyCallResult(success, resultData);
+  }
+
+  function executeDelegateCall(address target, bytes calldata data)
+    external
+    payable
+    returns (bool, bytes memory)
+  {
+    bool success;
+    bytes memory resultData;
+    // solium-disable-next-line security/no-call-value
+    (success, resultData) = target.delegatecall(data);
+    return (success, resultData);
+  }
+
+  function _verifyCallResult(bool success, bytes memory returnData)
+    private
+    pure
+    returns (bytes memory)
+  {
+    if (success) {
+      return returnData;
+    } else {
+      // Look for revert reason and bubble it up if present
+      if (returnData.length > 0) {
+        // The easiest way to bubble the revert reason is using memory via assembly
+
+        // solhint-disable-next-line no-inline-assembly
+        assembly {
+          let returndata_size := mload(returnData)
+          revert(add(32, returnData), returndata_size)
+        }
+      } else {
+        revert FailedActionExecution();
+      }
+    }
   }
 }
 
