@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0
 pragma solidity >=0.7.5 <0.9.0;
 
+import 'forge-std/StdJson.sol';
 import 'forge-std/Test.sol';
 
 struct ReserveTokens {
@@ -10,6 +11,8 @@ struct ReserveTokens {
 }
 
 contract CommonTestBase is Test {
+  using stdJson for string;
+
   address public constant ETH_MOCK_ADDRESS = 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE;
 
   address public constant EOA = 0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045;
@@ -21,8 +24,8 @@ contract CommonTestBase is Test {
     string memory outPath = string(
       abi.encodePacked('./diffs/', reportBefore, '_', reportAfter, '.md')
     );
-    string memory beforePath = string(abi.encodePacked('./reports/', reportBefore, '.md'));
-    string memory afterPath = string(abi.encodePacked('./reports/', reportAfter, '.md'));
+    string memory beforePath = string(abi.encodePacked('./reports/', reportBefore, '.json'));
+    string memory afterPath = string(abi.encodePacked('./reports/', reportAfter, '.json'));
 
     string[] memory inputs = new string[](3);
     inputs[0] = 'sh';
@@ -31,7 +34,7 @@ contract CommonTestBase is Test {
       abi.encodePacked(
         'printf ',
         "'```diff\n'",
-        '"`git diff --no-index --diff-algorithm=patience --ignore-space-at-eol ',
+        '"`git diff --no-index --diff-algorithm=patience --ignore-space-at-eol -U1000 ',
         beforePath,
         ' ',
         afterPath,
