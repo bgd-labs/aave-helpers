@@ -389,15 +389,13 @@ contract ProtocolV2TestBase is CommonTestBase {
           config.variableDebtToken
         )
       );
-      string memory oracleKey = 'oracleKey';
-      vm.serializeAddress(oracleKey, 'address', address(assetOracle));
+      vm.serializeAddress(key, 'oracle', address(assetOracle));
       string memory out = vm.serializeUint(
-        oracleKey,
-        'latestAnswer',
+        key,
+        'oracleLatestAnswer',
         uint256(oracle.getAssetPrice(config.underlying))
       );
-      string memory object = vm.serializeString(key, 'oracle', out);
-      content = vm.serializeString(reservesKey, key, object);
+      content = vm.serializeString(reservesKey, key, out);
     }
     string memory output = vm.serializeString('root', 'reserves', content);
     vm.writeJson(output, path);

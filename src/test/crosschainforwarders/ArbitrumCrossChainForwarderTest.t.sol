@@ -37,7 +37,7 @@ contract ArbitrumCrossChainForwarderTest is ProtocolV3TestBase {
   function setUp() public {
     mainnetFork = vm.createSelectFork(vm.rpcUrl('mainnet'), 16128510);
     forwarder = new CrosschainForwarderArbitrum();
-    arbitrumFork = vm.createSelectFork(vm.rpcUrl('arbitrum'), 62456736);
+    arbitrumFork = vm.createSelectFork(vm.rpcUrl('arbitrum'), 76261612);
     payloadWithEmit = new PayloadWithEmit();
   }
 
@@ -142,6 +142,6 @@ contract ArbitrumCrossChainForwarderTest is ProtocolV3TestBase {
     // 4. execute the proposal
     vm.expectEmit(true, true, true, true);
     emit TestEvent();
-    BridgeExecutorHelpers.waitAndExecuteLatest(vm, ARBITRUM_BRIDGE_EXECUTOR);
+    BridgeExecutorHelpers.waitAndExecuteLatest(vm, AaveGovernanceV2.ARBITRUM_BRIDGE_EXECUTOR);
   }
 }

@@ -27,22 +27,13 @@ contract CommonTestBase is Test {
     string memory beforePath = string(abi.encodePacked('./reports/', reportBefore, '.json'));
     string memory afterPath = string(abi.encodePacked('./reports/', reportAfter, '.json'));
 
-    string[] memory inputs = new string[](3);
-    inputs[0] = 'sh';
-    inputs[1] = '-c';
-    inputs[2] = string(
-      abi.encodePacked(
-        'printf ',
-        "'```diff\n'",
-        '"`git diff --no-index --diff-algorithm=patience --ignore-space-at-eol -U1000 ',
-        beforePath,
-        ' ',
-        afterPath,
-        '`"',
-        "'```' > ",
-        outPath
-      )
-    );
+    string[] memory inputs = new string[](6);
+    inputs[0] = 'npx';
+    inputs[1] = '@bgd-labs/report-engine';
+    inputs[2] = 'diff';
+    inputs[3] = beforePath;
+    inputs[4] = afterPath;
+    inputs[5] = outPath;
     vm.ffi(inputs);
   }
 
