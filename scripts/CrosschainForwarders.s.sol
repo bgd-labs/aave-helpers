@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import './Utils.s.sol';
+import '../src/ScriptUtils.sol';
 import {CrosschainForwarderPolygon} from '../src/crosschainforwarders/CrosschainForwarderPolygon.sol';
 import {CrosschainForwarderOptimism} from '../src/crosschainforwarders/CrosschainForwarderOptimism.sol';
 import {CrosschainForwarderArbitrum} from '../src/crosschainforwarders/CrosschainForwarderArbitrum.sol';
