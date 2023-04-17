@@ -37,3 +37,11 @@ abstract contract PolygonScript is WithChainIdValidation {
 abstract contract AvalancheScript is WithChainIdValidation {
   constructor() WithChainIdValidation(43114) {}
 }
+
+abstract contract FantomScript is WithChainIdValidation {
+  constructor() WithChainIdValidation(250) {}
+}
+
+abstract contract HarmonyScript is WithChainIdValidation {
+  constructor() WithChainIdValidation(1666600000) {}
+}
