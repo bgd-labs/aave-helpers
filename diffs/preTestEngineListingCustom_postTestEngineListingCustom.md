@@ -25,6 +25,8 @@
 | liquidationThreshold | 86 % |
 | ltv | 82.5 % |
 | oracle | [0x72AFAECF99C9d9C8215fF44C77B94B99C28741e8](https://etherscan.io/address/0x72AFAECF99C9d9C8215fF44C77B94B99C28741e8) |
+| oracleDecimals | 18 |
+| oracleDescription | 1INCH / ETH |
 | oracleLatestAnswer | 328,918,384,865,774 |
 | reserveFactor | 10 % |
 | stableBorrowRateEnabled | true |
@@ -61,6 +63,8 @@
         "liquidationThreshold": 8600,
         "ltv": 8250,
         "oracle": "0x72AFAECF99C9d9C8215fF44C77B94B99C28741e8",
+        "oracleDecimals": 18,
+        "oracleDescription": "1INCH / ETH",
         "oracleLatestAnswer": 328918384865774,
         "reserveFactor": 1000,
         "stableBorrowRateEnabled": true,

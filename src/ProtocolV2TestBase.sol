@@ -2,9 +2,10 @@
 pragma solidity >=0.7.5 <0.9.0;
 
 import 'forge-std/Test.sol';
-import {AggregatorInterface, IAaveOracle, ILendingPool, ILendingPoolAddressesProvider, ILendingPoolConfigurator, IAaveProtocolDataProvider, DataTypes, TokenData, ILendingRateOracle, IDefaultInterestRateStrategy} from 'aave-address-book/AaveV2.sol';
+import {IAaveOracle, ILendingPool, ILendingPoolAddressesProvider, ILendingPoolConfigurator, IAaveProtocolDataProvider, DataTypes, TokenData, ILendingRateOracle, IDefaultInterestRateStrategy} from 'aave-address-book/AaveV2.sol';
 import {IERC20} from 'solidity-utils/contracts/oz-common/interfaces/IERC20.sol';
 import {IInitializableAdminUpgradeabilityProxy} from './interfaces/IInitializableAdminUpgradeabilityProxy.sol';
+import {ExtendedAggregatorV2V3Interface} from './interfaces/ExtendedAggregatorV2V3Interface.sol';
 import {CommonTestBase, ReserveTokens} from './CommonTestBase.sol';
 import {ProxyHelpers} from './ProxyHelpers.sol';
 
@@ -343,7 +344,7 @@ contract ProtocolV2TestBase is CommonTestBase {
 
     for (uint256 i = 0; i < configs.length; i++) {
       ReserveConfig memory config = configs[i];
-      AggregatorInterface assetOracle = AggregatorInterface(
+      ExtendedAggregatorV2V3Interface assetOracle = ExtendedAggregatorV2V3Interface(
         oracle.getSourceOfAsset(config.underlying)
       );
 
@@ -391,6 +392,18 @@ contract ProtocolV2TestBase is CommonTestBase {
         )
       );
       vm.serializeAddress(key, 'oracle', address(assetOracle));
+      if (address(assetOracle) != address(0)) {
+        try assetOracle.description() returns (string memory name) {
+          vm.serializeString(key, 'oracleDescription', name);
+        } catch {
+          try assetOracle.name() returns (string memory name) {
+            vm.serializeString(key, 'oracleName', name);
+          } catch {}
+        }
+        try assetOracle.decimals() returns (uint8 decimals) {
+          vm.serializeUint(key, 'oracleDecimals', decimals);
+        } catch {}
+      }
       string memory out = vm.serializeUint(
         key,
         'oracleLatestAnswer',

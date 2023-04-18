@@ -25,6 +25,8 @@
 | liquidationThreshold | 86 % |
 | ltv | 82.5 % |
 | oracle | [0x443C5116CdF663Eb387e72C688D276e702135C87](https://polygonscan.com/address/0x443C5116CdF663Eb387e72C688D276e702135C87) |
+| oracleDecimals | 8 |
+| oracleDescription | 1INCH / USD |
 | oracleLatestAnswer | 52,690,564 |
 | reserveFactor | 10 % |
 | stableBorrowRateEnabled | false |
@@ -61,6 +63,8 @@
         "liquidationThreshold": 8600,
         "ltv": 8250,
         "oracle": "0x443C5116CdF663Eb387e72C688D276e702135C87",
+        "oracleDecimals": 8,
+        "oracleDescription": "1INCH / USD",
         "oracleLatestAnswer": 52690564,
         "reserveFactor": 1000,
         "stableBorrowRateEnabled": false,
