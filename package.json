@@ -7,7 +7,7 @@
     "test": "tests"
   },
   "scripts": {
-    "prettier": "prettier --write 'src/contracts/**/*.sol'",
+    "prettier": "prettier --write 'src/**/*.sol'",
     "prettier:tests": "prettier --write 'tests/**/*.sol'"
   },
   "repository": {

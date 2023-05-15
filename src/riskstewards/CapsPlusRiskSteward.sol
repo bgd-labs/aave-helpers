@@ -74,21 +74,16 @@ contract CapsPlusRiskSteward is ICapsPlusRiskSteward {
    * @param engine the config engine to be used by the steward
    * @param riskCouncil the safe address of the council being able to interact with the steward
    */
-  constructor(
-    IPoolDataProvider poolDataProvider,
-    IAaveV3ConfigEngine engine,
-    address riskCouncil
-  ) {
+  constructor(IPoolDataProvider poolDataProvider, IAaveV3ConfigEngine engine, address riskCouncil) {
     POOL_DATA_PROVIDER = poolDataProvider;
     RISK_COUNCIL = riskCouncil;
     CONFIG_ENGINE = engine;
   }
 
   /// @inheritdoc ICapsPlusRiskSteward
-  function updateCaps(IAaveV3ConfigEngine.CapsUpdate[] calldata capUpdates)
-    external
-    onlyRiskCouncil
-  {
+  function updateCaps(
+    IAaveV3ConfigEngine.CapsUpdate[] calldata capUpdates
+  ) external onlyRiskCouncil {
     require(capUpdates.length > 0, CapsPlusRiskStewardErrors.NO_ZERO_UPDATES);
     for (uint256 i = 0; i < capUpdates.length; i++) {
       (uint256 currentBorrowCap, uint256 currentSupplyCap) = POOL_DATA_PROVIDER.getReserveCaps(

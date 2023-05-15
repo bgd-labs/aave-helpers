@@ -47,17 +47,17 @@ contract MetisCrossChainForwarderTest is ProtocolV3TestBase {
       callData: abi.encode(address(payloadWithEmit))
     });
 
-    uint256 proposalId = GovHelpers.createProposal(
-      payloads,
-      'ipfs'
-    );
+    uint256 proposalId = GovHelpers.createProposal(payloads, 'ipfs');
     vm.stopPrank();
 
     // 2. execute proposal and record logs so we can extract the emitted StateSynced event
     vm.recordLogs();
     GovHelpers.passVoteAndExecute(vm, proposalId);
     Vm.Log[] memory entries = vm.getRecordedLogs();
-    assertEq(keccak256('SentMessage(address,address,bytes,uint256,uint256,uint256)'), entries[3].topics[0]);
+    assertEq(
+      keccak256('SentMessage(address,address,bytes,uint256,uint256,uint256)'),
+      entries[3].topics[0]
+    );
     assertEq(address(uint160(uint256(entries[3].topics[1]))), METIS_BRIDGE_EXECUTOR);
     (address sender, bytes memory message, uint256 nonce) = abi.decode(
       entries[3].data,

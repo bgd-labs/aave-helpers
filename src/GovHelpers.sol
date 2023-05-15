@@ -70,11 +70,10 @@ library GovHelpers {
       });
   }
 
-  function _buildL2(address forwarder, address payloadAddress)
-    private
-    pure
-    returns (Payload memory)
-  {
+  function _buildL2(
+    address forwarder,
+    address payloadAddress
+  ) private pure returns (Payload memory) {
     return
       Payload({
         target: forwarder,
@@ -83,10 +82,10 @@ library GovHelpers {
       });
   }
 
-  function createProposal(Payload[] memory delegateCalls, bytes32 ipfsHash)
-    internal
-    returns (uint256)
-  {
+  function createProposal(
+    Payload[] memory delegateCalls,
+    bytes32 ipfsHash
+  ) internal returns (uint256) {
     return _createProposal(AaveGovernanceV2.SHORT_EXECUTOR, delegateCalls, ipfsHash, false);
   }
 
@@ -213,11 +212,9 @@ library GovHelpers {
     vm.roll(endBlock + 1);
   }
 
-  function getProposalById(uint256 proposalId)
-    internal
-    view
-    returns (IAaveGovernanceV2.ProposalWithoutVotes memory)
-  {
+  function getProposalById(
+    uint256 proposalId
+  ) internal view returns (IAaveGovernanceV2.ProposalWithoutVotes memory) {
     return AaveGovernanceV2.GOV.getProposalById(proposalId);
   }
 }
@@ -469,11 +466,10 @@ contract MockExecutor {
     return _verifyCallResult(success, resultData);
   }
 
-  function executeDelegateCall(address target, bytes calldata data)
-    external
-    payable
-    returns (bool, bytes memory)
-  {
+  function executeDelegateCall(
+    address target,
+    bytes calldata data
+  ) external payable returns (bool, bytes memory) {
     bool success;
     bytes memory resultData;
     // solium-disable-next-line security/no-call-value
@@ -481,11 +477,10 @@ contract MockExecutor {
     return (success, resultData);
   }
 
-  function _verifyCallResult(bool success, bytes memory returnData)
-    private
-    pure
-    returns (bytes memory)
-  {
+  function _verifyCallResult(
+    bool success,
+    bytes memory returnData
+  ) private pure returns (bytes memory) {
     if (success) {
       return returnData;
     } else {

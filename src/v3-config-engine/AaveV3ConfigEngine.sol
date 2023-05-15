@@ -123,9 +123,10 @@ contract AaveV3ConfigEngine is IAaveV3ConfigEngine {
   }
 
   /// @inheritdoc IAaveV3ConfigEngine
-  function listAssetsCustom(PoolContext memory context, ListingWithCustomImpl[] memory listings)
-    public
-  {
+  function listAssetsCustom(
+    PoolContext memory context,
+    ListingWithCustomImpl[] memory listings
+  ) public {
     require(listings.length != 0, 'AT_LEAST_ONE_ASSET_REQUIRED');
 
     AssetsConfig memory configs = _repackListing(listings);
@@ -453,11 +454,9 @@ contract AaveV3ConfigEngine is IAaveV3ConfigEngine {
     }
   }
 
-  function _repackListing(ListingWithCustomImpl[] memory listings)
-    internal
-    pure
-    returns (AssetsConfig memory)
-  {
+  function _repackListing(
+    ListingWithCustomImpl[] memory listings
+  ) internal pure returns (AssetsConfig memory) {
     address[] memory ids = new address[](listings.length);
     Basic[] memory basics = new Basic[](listings.length);
     Borrow[] memory borrows = new Borrow[](listings.length);
@@ -509,11 +508,9 @@ contract AaveV3ConfigEngine is IAaveV3ConfigEngine {
       });
   }
 
-  function _repackCapsUpdate(CapsUpdate[] memory updates)
-    internal
-    pure
-    returns (AssetsConfig memory)
-  {
+  function _repackCapsUpdate(
+    CapsUpdate[] memory updates
+  ) internal pure returns (AssetsConfig memory) {
     address[] memory ids = new address[](updates.length);
     Caps[] memory caps = new Caps[](updates.length);
 
@@ -533,11 +530,9 @@ contract AaveV3ConfigEngine is IAaveV3ConfigEngine {
       });
   }
 
-  function _repackRatesUpdate(RateStrategyUpdate[] memory updates)
-    internal
-    pure
-    returns (AssetsConfig memory)
-  {
+  function _repackRatesUpdate(
+    RateStrategyUpdate[] memory updates
+  ) internal pure returns (AssetsConfig memory) {
     address[] memory ids = new address[](updates.length);
     IV3RateStrategyFactory.RateStrategyParams[]
       memory rates = new IV3RateStrategyFactory.RateStrategyParams[](updates.length);
@@ -558,11 +553,9 @@ contract AaveV3ConfigEngine is IAaveV3ConfigEngine {
       });
   }
 
-  function _repackCollateralUpdate(CollateralUpdate[] memory updates)
-    internal
-    pure
-    returns (AssetsConfig memory)
-  {
+  function _repackCollateralUpdate(
+    CollateralUpdate[] memory updates
+  ) internal pure returns (AssetsConfig memory) {
     address[] memory ids = new address[](updates.length);
     Collateral[] memory collaterals = new Collateral[](updates.length);
 
@@ -589,11 +582,9 @@ contract AaveV3ConfigEngine is IAaveV3ConfigEngine {
       });
   }
 
-  function _repackBorrowUpdate(BorrowUpdate[] memory updates)
-    internal
-    pure
-    returns (AssetsConfig memory)
-  {
+  function _repackBorrowUpdate(
+    BorrowUpdate[] memory updates
+  ) internal pure returns (AssetsConfig memory) {
     address[] memory ids = new address[](updates.length);
     Borrow[] memory borrows = new Borrow[](updates.length);
 
@@ -620,11 +611,9 @@ contract AaveV3ConfigEngine is IAaveV3ConfigEngine {
       });
   }
 
-  function _repackPriceFeed(PriceFeedUpdate[] memory updates)
-    internal
-    pure
-    returns (AssetsConfig memory)
-  {
+  function _repackPriceFeed(
+    PriceFeedUpdate[] memory updates
+  ) internal pure returns (AssetsConfig memory) {
     address[] memory ids = new address[](updates.length);
     Basic[] memory basics = new Basic[](updates.length);
 

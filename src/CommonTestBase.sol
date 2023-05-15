@@ -45,22 +45,20 @@ contract CommonTestBase is Test {
     vm.warp(block.timestamp + blocks * 12); // assuming a block is around 12seconds
   }
 
-  function _isInUint256Array(uint256[] memory haystack, uint256 needle)
-    internal
-    pure
-    returns (bool)
-  {
+  function _isInUint256Array(
+    uint256[] memory haystack,
+    uint256 needle
+  ) internal pure returns (bool) {
     for (uint256 i = 0; i < haystack.length; i++) {
       if (haystack[i] == needle) return true;
     }
     return false;
   }
 
-  function _isInAddressArray(address[] memory haystack, address needle)
-    internal
-    pure
-    returns (bool)
-  {
+  function _isInAddressArray(
+    address[] memory haystack,
+    address needle
+  ) internal pure returns (bool) {
     for (uint256 i = 0; i < haystack.length; i++) {
       if (haystack[i] == needle) return true;
     }
