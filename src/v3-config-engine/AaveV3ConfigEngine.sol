@@ -394,11 +394,15 @@ contract AaveV3ConfigEngine is IAaveV3ConfigEngine {
   function _configCollateralSide(address[] memory ids, Collateral[] memory collaterals) internal {
     for (uint256 i = 0; i < ids.length; i++) {
       if (collaterals[i].liqThreshold != 0) {
-        if (
-          collaterals[i].ltv == EngineFlags.KEEP_CURRENT ||
+        bool notAllKeepCurrent = collaterals[i].ltv != EngineFlags.KEEP_CURRENT ||
+          collaterals[i].liqThreshold != EngineFlags.KEEP_CURRENT ||
+          collaterals[i].liqBonus != EngineFlags.KEEP_CURRENT;
+
+        bool atLeastOneKeepCurrent = collaterals[i].ltv == EngineFlags.KEEP_CURRENT ||
           collaterals[i].liqThreshold == EngineFlags.KEEP_CURRENT ||
-          collaterals[i].liqBonus == EngineFlags.KEEP_CURRENT
-        ) {
+          collaterals[i].liqBonus == EngineFlags.KEEP_CURRENT;
+
+        if (notAllKeepCurrent && atLeastOneKeepCurrent) {
           DataTypes.ReserveConfigurationMap memory configuration = POOL.getConfiguration(ids[i]);
           (
             uint256 currentLtv,
@@ -423,20 +427,22 @@ contract AaveV3ConfigEngine is IAaveV3ConfigEngine {
           }
         }
 
-        // LT*LB (in %) should never be above 100%, because it means instant undercollateralization
-        require(
-          collaterals[i].liqThreshold.percentMul(100_00 + collaterals[i].liqBonus) <= 100_00,
-          'INVALID_LT_LB_RATIO'
-        );
+        if (notAllKeepCurrent) {
+          // LT*LB (in %) should never be above 100%, because it means instant undercollateralization
+          require(
+            collaterals[i].liqThreshold.percentMul(100_00 + collaterals[i].liqBonus) <= 100_00,
+            'INVALID_LT_LB_RATIO'
+          );
 
-        POOL_CONFIGURATOR.configureReserveAsCollateral(
-          ids[i],
-          collaterals[i].ltv,
-          collaterals[i].liqThreshold,
-          // For reference, this is to simplify the interaction with the Aave protocol,
-          // as there the definition is as e.g. 105% (5% bonus for liquidators)
-          100_00 + collaterals[i].liqBonus
-        );
+          POOL_CONFIGURATOR.configureReserveAsCollateral(
+            ids[i],
+            collaterals[i].ltv,
+            collaterals[i].liqThreshold,
+            // For reference, this is to simplify the interaction with the Aave protocol,
+            // as there the definition is as e.g. 105% (5% bonus for liquidators)
+            100_00 + collaterals[i].liqBonus
+          );
+        }
 
         if (collaterals[i].liqProtocolFee != EngineFlags.KEEP_CURRENT) {
           require(collaterals[i].liqProtocolFee < 100_00, 'INVALID_LIQ_PROTOCOL_FEE');
