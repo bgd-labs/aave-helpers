@@ -42,6 +42,22 @@ library GovHelpers {
     bytes callData;
   }
 
+  function ipfsHashFile(Vm vm, string memory filePath, bool upload) internal returns (bytes32) {
+    string[] memory inputs = new string[](6);
+    inputs[0] = 'npx';
+    inputs[1] = 'aave-cli';
+    inputs[2] = 'ipfs';
+    inputs[3] = filePath;
+    inputs[4] = '-u';
+    inputs[5] = vm.toString(upload);
+    bytes memory bs58Hash = vm.ffi(inputs);
+    return bytes32(bs58Hash);
+  }
+
+  function ipfsHashFile(Vm vm, string memory filePath) internal returns (bytes32) {
+    return ipfsHashFile(vm, filePath, false);
+  }
+
   function buildMainnet(address payloadAddress) internal pure returns (Payload memory) {
     require(
       payloadAddress != AaveGovernanceV2.CROSSCHAIN_FORWARDER_OPTIMISM &&
