@@ -20,18 +20,18 @@ If you want just to do one or multiple listings, you only need to define the lis
 
 Do you want instead to update supply/borrow caps? Same approach as with the listings, you only need to define the update of caps within a `capsUpdates()` function, and the base payload will take care of the rest.
 
-Do you want to update the price-feed of an asset? You only need to define the update of price feed within a `updatePriceFeeds()` function, and the base payload will take care of the rest.
+Do you want to update the price-feed of an asset? You only need to define the update of price feed within a `priceFeedsUpdates()` function, and the base payload will take care of the rest.
 
-Change collateral-related parameters? Same approach as previous, you only need to define the update within a `updateCollateralSide()` function, and the base payload will take care of the rest.
+Change collateral-related parameters? Same approach as previous, you only need to define the update within a `collateralsUpdates()` function, and the base payload will take care of the rest.
 
-Change Borrow-related parameters? Same as previous, just define the update within a `updateBorrowSide()` function, and the base payload will take care of the rest.
+Change Borrow-related parameters? Same as previous, just define the update within a `borrowsUpdates()` function, and the base payload will take care of the rest.
 
 ### Internal aspects to consider
 
 - Frequently, at the same time that you want to do an update of parameters or listing, you also want to do something extra before or after (e.g. create an eMode category that you will use for the new asset to be listed).
 The `Base Aave v3 Payload` defines `_preExecute()` and `_postExecute()` hook functions, that you can redefine on your payload and will the execute before and after all configs changes/listings you define.
 
-- The payload also allow you to group changes of parameters and listings, just by defining at the same time the aforementioned `newListings()`, `capsUpdate()` and/or `updateCollateralSide()`. For reference, the execution ordering is the following:
+- The payload also allow you to group changes of parameters and listings, just by defining at the same time the aforementioned `newListings()`, `capsUpdate()` and/or `collateralsUpdates()`. For reference, the execution ordering is the following:
   1. `_preExecute()`
   2. `newListingsCustom()`
   3. `newListings()`

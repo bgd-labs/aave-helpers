@@ -16,6 +16,7 @@ import {EngineFlags} from './EngineFlags.sol';
  *   - Listings of new assets on the pool.
  *   - Updates of caps (supply cap, borrow cap).
  *   - Updates of price feeds
+ *   - Updates of interest rate strategies.
  *   - Updates of borrow parameters (flashloanable, stableRateModeEnabled, borrowableInIsolation, withSiloedBorrowing, reserveFactor)
  *   - Updates of collateral parameters (ltv, liq threshold, liq bonus, liq protocol fee, debt ceiling)
  * @author BGD Labs
