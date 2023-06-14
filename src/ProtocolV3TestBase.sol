@@ -4,6 +4,7 @@ pragma solidity >=0.7.5 <0.9.0;
 import 'forge-std/Test.sol';
 import {IAaveOracle, IPool, IPoolAddressesProvider, IPoolDataProvider, IDefaultInterestRateStrategy, DataTypes, IPoolConfigurator} from 'aave-address-book/AaveV3.sol';
 import {IERC20} from 'solidity-utils/contracts/oz-common/interfaces/IERC20.sol';
+import {SafeERC20} from 'solidity-utils/contracts/oz-common/SafeERC20.sol';
 import {IInitializableAdminUpgradeabilityProxy} from './interfaces/IInitializableAdminUpgradeabilityProxy.sol';
 import {ExtendedAggregatorV2V3Interface} from './interfaces/ExtendedAggregatorV2V3Interface.sol';
 import {ProxyHelpers} from './ProxyHelpers.sol';
@@ -65,6 +66,7 @@ struct InterestStrategyValues {
 
 contract ProtocolV3TestBase is CommonTestBase {
   using ReserveConfiguration for DataTypes.ReserveConfigurationMap;
+  using SafeERC20 for IERC20;
 
   /**
    * @dev Generates a markdown compatible snapshot of the whole pool configuration into `/reports`.
@@ -213,10 +215,8 @@ contract ProtocolV3TestBase is CommonTestBase {
     require(!config.isPaused, 'DEPOSIT(): PAUSED_RESERVE');
     vm.startPrank(user);
     uint256 aTokenBefore = IERC20(config.aToken).balanceOf(user);
-    _patchedDeal(config.underlying, user, amount);
-    // TODO: woraround as `_patchedDeal` changes prank context & there's currently no way to revert
-    vm.startPrank(user);
-    _patchedApprove(config.underlying, address(pool), amount);
+    deal2(config.underlying, user, amount);
+    IERC20(config.underlying).safeApprove(address(pool), amount);
     console.log('SUPPLY: %s, Amount: %s', config.symbol, amount);
     pool.deposit(config.underlying, amount, user, 0);
     uint256 aTokenAfter = IERC20(config.aToken).balanceOf(user);
@@ -271,9 +271,8 @@ contract ProtocolV3TestBase is CommonTestBase {
     vm.startPrank(user);
     address debtToken = stable ? config.stableDebtToken : config.variableDebtToken;
     uint256 debtBefore = IERC20(debtToken).balanceOf(user);
-    _patchedDeal(config.underlying, user, amount);
-    vm.startPrank(user);
-    IERC20(config.underlying).approve(address(pool), amount);
+    deal2(config.underlying, user, amount);
+    IERC20(config.underlying).safeApprove(address(pool), amount);
     console.log('REPAY: %s, Amount: %s', config.symbol, amount);
     pool.repay(config.underlying, amount, stable ? 1 : 2, user);
     uint256 debtAfter = IERC20(debtToken).balanceOf(user);
