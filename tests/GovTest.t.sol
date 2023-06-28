@@ -52,15 +52,21 @@ contract GovernanceMainnetExecutorTest is Test {
   event TestEvent();
 
   function setUp() public {
-    vm.createSelectFork('mainnet', 17370904);
+    vm.createSelectFork('mainnet', 17570714);
   }
 
-  function testCreateProposal() public {
+  function testCreateProposalShort() public {
     PayloadWithEmit payload = new PayloadWithEmit();
-    // test does not work as is not emitted in next call
-    // vm.expectEmit(true, true, true, true);
-    // emit TestEvent();
+    vm.expectEmit(true, true, true, true);
+    emit TestEvent();
     GovHelpers.executePayload(vm, address(payload), AaveGovernanceV2.SHORT_EXECUTOR);
+  }
+
+  function testCreateProposalLong() public {
+    PayloadWithEmit payload = new PayloadWithEmit();
+    vm.expectEmit(true, true, true, true);
+    emit TestEvent();
+    GovHelpers.executePayload(vm, address(payload), AaveGovernanceV2.LONG_EXECUTOR);
   }
 }
 
