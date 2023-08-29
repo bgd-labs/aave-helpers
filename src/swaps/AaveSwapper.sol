@@ -8,6 +8,7 @@ import {Rescuable} from 'solidity-utils/contracts/utils/Rescuable.sol';
 import {OwnableWithGuardian} from 'solidity-utils/contracts/access-control/OwnableWithGuardian.sol';
 import {Initializable} from 'solidity-utils/contracts/transparent-proxy/Initializable.sol';
 import {AaveV3Ethereum} from 'aave-address-book/AaveV3Ethereum.sol';
+import {AaveGovernanceV2} from 'aave-address-book/AaveGovernanceV2.sol';
 
 import {IPriceChecker} from './interfaces/IExpectedOutCalculator.sol';
 import {IMilkman} from './interfaces/IMilkman.sol';
@@ -35,8 +36,8 @@ contract AaveSwapper is Initializable, OwnableWithGuardian, Rescuable {
   address public constant BAL80WETH20 = 0x5c6Ee304399DBdB9C8Ef030aB642B10820DB8F56;
 
   function initialize() external initializer {
-    _transferOwnership(_msgSender());
-    _updateGuardian(_msgSender());
+    _transferOwnership(AaveGovernanceV2.SHORT_EXECUTOR);
+    _updateGuardian(0xA519a7cE7B24333055781133B13532AEabfAC81b);
   }
 
   function swap(
