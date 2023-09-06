@@ -35,6 +35,10 @@ contract AavePolEthERC20Bridge is Ownable, Rescuable, IAavePolEthERC20Bridge {
 
   address public constant ROOT_CHAIN_MANAGER = 0xA0c68C638235ee32657e8f720a23ceC1bFc77C77;
 
+  constructor(address _owner) {
+    _transferOwnership(_owner);
+  }
+
   /*
    * This function withdraws an ERC20 token from Polygon to Mainnet. exit() needs
    * to be called on mainnet with the corresponding burnProof in order to complete.

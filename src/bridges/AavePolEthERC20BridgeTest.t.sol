@@ -30,10 +30,10 @@ contract AavePolEthERC20BridgeTest is Test {
     bytes32 salt = keccak256(abi.encode(tx.origin, uint256(0)));
 
     mainnetFork = vm.createSelectFork(vm.rpcUrl('mainnet'), 17921144);
-    bridgeMainnet = new AavePolEthERC20Bridge{salt: salt}();
+    bridgeMainnet = new AavePolEthERC20Bridge{salt: salt}(address(this));
 
     polygonFork = vm.createSelectFork(vm.rpcUrl('polygon'), 46340897);
-    bridgePolygon = new AavePolEthERC20Bridge{salt: salt}();
+    bridgePolygon = new AavePolEthERC20Bridge{salt: salt}(address(this));
   }
 }
 
