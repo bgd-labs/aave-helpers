@@ -739,82 +739,82 @@ contract ProtocolV3TestBase is CommonTestBase {
     ReserveConfig memory config = _findReserveConfig(allConfigs, expectedConfig.underlying);
     require(
       keccak256(bytes(config.symbol)) == keccak256(bytes(expectedConfig.symbol)),
-      '_validateConfigsInAave() : INVALID_SYMBOL'
+      '_validateReserveConfig() : INVALID_SYMBOL'
     );
     require(
       config.underlying == expectedConfig.underlying,
-      '_validateConfigsInAave() : INVALID_UNDERLYING'
+      '_validateReserveConfig() : INVALID_UNDERLYING'
     );
-    require(config.decimals == expectedConfig.decimals, '_validateConfigsInAave: INVALID_DECIMALS');
-    require(config.ltv == expectedConfig.ltv, '_validateConfigsInAave: INVALID_LTV');
+    require(config.decimals == expectedConfig.decimals, '_validateReserveConfig: INVALID_DECIMALS');
+    require(config.ltv == expectedConfig.ltv, '_validateReserveConfig: INVALID_LTV');
     require(
       config.liquidationThreshold == expectedConfig.liquidationThreshold,
-      '_validateConfigsInAave: INVALID_LIQ_THRESHOLD'
+      '_validateReserveConfig: INVALID_LIQ_THRESHOLD'
     );
     require(
       config.liquidationBonus == expectedConfig.liquidationBonus,
-      '_validateConfigsInAave: INVALID_LIQ_BONUS'
+      '_validateReserveConfig: INVALID_LIQ_BONUS'
     );
     require(
       config.liquidationProtocolFee == expectedConfig.liquidationProtocolFee,
-      '_validateConfigsInAave: INVALID_LIQUIDATION_PROTOCOL_FEE'
+      '_validateReserveConfig: INVALID_LIQUIDATION_PROTOCOL_FEE'
     );
     require(
       config.reserveFactor == expectedConfig.reserveFactor,
-      '_validateConfigsInAave: INVALID_RESERVE_FACTOR'
+      '_validateReserveConfig: INVALID_RESERVE_FACTOR'
     );
 
     require(
       config.usageAsCollateralEnabled == expectedConfig.usageAsCollateralEnabled,
-      '_validateConfigsInAave: INVALID_USAGE_AS_COLLATERAL'
+      '_validateReserveConfig: INVALID_USAGE_AS_COLLATERAL'
     );
     require(
       config.borrowingEnabled == expectedConfig.borrowingEnabled,
-      '_validateConfigsInAave: INVALID_BORROWING_ENABLED'
+      '_validateReserveConfig: INVALID_BORROWING_ENABLED'
     );
     require(
       config.stableBorrowRateEnabled == expectedConfig.stableBorrowRateEnabled,
-      '_validateConfigsInAave: INVALID_STABLE_BORROW_ENABLED'
+      '_validateReserveConfig: INVALID_STABLE_BORROW_ENABLED'
     );
     require(
       config.isActive == expectedConfig.isActive,
-      '_validateConfigsInAave: INVALID_IS_ACTIVE'
+      '_validateReserveConfig: INVALID_IS_ACTIVE'
     );
     require(
       config.isFrozen == expectedConfig.isFrozen,
-      '_validateConfigsInAave: INVALID_IS_FROZEN'
+      '_validateReserveConfig: INVALID_IS_FROZEN'
     );
     require(
       config.isSiloed == expectedConfig.isSiloed,
-      '_validateConfigsInAave: INVALID_IS_SILOED'
+      '_validateReserveConfig: INVALID_IS_SILOED'
     );
     require(
       config.isBorrowableInIsolation == expectedConfig.isBorrowableInIsolation,
-      '_validateConfigsInAave: INVALID_IS_BORROWABLE_IN_ISOLATION'
+      '_validateReserveConfig: INVALID_IS_BORROWABLE_IN_ISOLATION'
     );
     require(
       config.isFlashloanable == expectedConfig.isFlashloanable,
-      '_validateConfigsInAave: INVALID_IS_FLASHLOANABLE'
+      '_validateReserveConfig: INVALID_IS_FLASHLOANABLE'
     );
     require(
       config.supplyCap == expectedConfig.supplyCap,
-      '_validateConfigsInAave: INVALID_SUPPLY_CAP'
+      '_validateReserveConfig: INVALID_SUPPLY_CAP'
     );
     require(
       config.borrowCap == expectedConfig.borrowCap,
-      '_validateConfigsInAave: INVALID_BORROW_CAP'
+      '_validateReserveConfig: INVALID_BORROW_CAP'
     );
     require(
       config.debtCeiling == expectedConfig.debtCeiling,
-      '_validateConfigsInAave: INVALID_DEBT_CEILING'
+      '_validateReserveConfig: INVALID_DEBT_CEILING'
     );
     require(
       config.eModeCategory == expectedConfig.eModeCategory,
-      '_validateConfigsInAave: INVALID_EMODE_CATEGORY'
+      '_validateReserveConfig: INVALID_EMODE_CATEGORY'
     );
     require(
       config.interestRateStrategy == expectedConfig.interestRateStrategy,
-      '_validateConfigsInAave: INVALID_INTEREST_RATE_STRATEGY'
+      '_validateReserveConfig: INVALID_INTEREST_RATE_STRATEGY'
     );
   }
 
@@ -1039,7 +1039,7 @@ contract ProtocolV3TestBase is CommonTestBase {
     require(
       IInitializableAdminUpgradeabilityProxy(config.aToken).implementation() ==
         expectedImpls.aToken,
-      '_validateReserveTokensImpls() : INVALID_ATOKEN_IMPL'
+      '_validateReserveTokensImpls() : INVALID_VARIABLE_DEBT_IMPL'
     );
     require(
       IInitializableAdminUpgradeabilityProxy(config.variableDebtToken).implementation() ==
@@ -1049,7 +1049,7 @@ contract ProtocolV3TestBase is CommonTestBase {
     require(
       IInitializableAdminUpgradeabilityProxy(config.stableDebtToken).implementation() ==
         expectedImpls.stableDebtToken,
-      '_validateReserveTokensImpls() : INVALID_ATOKEN_IMPL'
+      '_validateReserveTokensImpls() : INVALID_STABLE_DEBT_IMPL'
     );
     vm.stopPrank();
   }
@@ -1092,6 +1092,37 @@ contract ProtocolV3TestBase is CommonTestBase {
     if (countCategory < expectedAssets.length) {
       revert('_getAssetOnEmodeCategory(): LESS_ASSETS_IN_CATEGORY_THAN_EXPECTED');
     }
+  }
+
+  function _validateEmodeCategory(
+    IPoolAddressesProvider addressesProvider,
+    uint256 category,
+    DataTypes.EModeCategory memory expectedCategoryData
+  ) internal view {
+    address poolAddress = addressesProvider.getPool();
+    DataTypes.EModeCategory memory currentCategoryData = IPool(poolAddress).getEModeCategoryData(
+      uint8(category)
+    );
+    require(
+      keccak256(bytes(currentCategoryData.label)) == keccak256(bytes(expectedCategoryData.label)),
+      '_validateEmodeCategory(): INVALID_LABEL'
+    );
+    require(
+      currentCategoryData.ltv == expectedCategoryData.ltv,
+      '_validateEmodeCategory(): INVALID_LTV'
+    );
+    require(
+      currentCategoryData.liquidationThreshold == expectedCategoryData.liquidationThreshold,
+      '_validateEmodeCategory(): INVALID_LT'
+    );
+    require(
+      currentCategoryData.liquidationBonus == expectedCategoryData.liquidationBonus,
+      '_validateEmodeCategory(): INVALID_LB'
+    );
+    require(
+      currentCategoryData.priceSource == expectedCategoryData.priceSource,
+      '_validateEmodeCategory(): INVALID_PRICE_SOURCE'
+    );
   }
 }
 
