@@ -11,6 +11,7 @@ import {AaveV3Arbitrum} from 'aave-address-book/AaveV3Arbitrum.sol';
 import {AaveV3Polygon} from 'aave-address-book/AaveV3Polygon.sol';
 import {AaveV3Avalanche} from 'aave-address-book/AaveV3Avalanche.sol';
 import {AaveV3Metis} from 'aave-address-book/AaveV3Metis.sol';
+import {AaveV3Base} from 'aave-address-book/AaveV3Base.sol';
 import {CapsEngine} from '../src/v3-config-engine/libraries/CapsEngine.sol';
 import {BorrowEngine} from '../src/v3-config-engine/libraries/BorrowEngine.sol';
 import {CollateralEngine} from '../src/v3-config-engine/libraries/CollateralEngine.sol';
@@ -217,6 +218,39 @@ library DeployEngineMetLib {
   }
 }
 
+library DeployEngineBaseLib {
+  function deploy() internal returns (address) {
+    IEngine.EngineLibraries memory engineLibraries = IEngine.EngineLibraries({
+      listingEngine: Create2Utils._create2Deploy('v1', type(ListingEngine).creationCode),
+      eModeEngine: Create2Utils._create2Deploy('v1', type(EModeEngine).creationCode),
+      borrowEngine: Create2Utils._create2Deploy('v1', type(BorrowEngine).creationCode),
+      collateralEngine: Create2Utils._create2Deploy('v1', type(CollateralEngine).creationCode),
+      priceFeedEngine: Create2Utils._create2Deploy('v1', type(PriceFeedEngine).creationCode),
+      rateEngine: Create2Utils._create2Deploy('v1', type(RateEngine).creationCode),
+      capsEngine: Create2Utils._create2Deploy('v1', type(CapsEngine).creationCode)
+    });
+    IEngine.EngineConstants memory engineConstants = IEngine.EngineConstants({
+      pool: AaveV3Base.POOL,
+      poolConfigurator: AaveV3Base.POOL_CONFIGURATOR,
+      ratesStrategyFactory: IV3RateStrategyFactory(AaveV3Base.RATES_FACTORY),
+      oracle: AaveV3Base.ORACLE,
+      rewardsController: AaveV3Base.DEFAULT_INCENTIVES_CONTROLLER,
+      collector: address(AaveV3Base.COLLECTOR)
+    });
+
+    return
+      address(
+        new Engine(
+          AaveV3Base.DEFAULT_A_TOKEN_IMPL_REV_1,
+          AaveV3Base.DEFAULT_VARIABLE_DEBT_TOKEN_IMPL_REV_1,
+          AaveV3Base.DEFAULT_STABLE_DEBT_TOKEN_IMPL_REV_1,
+          engineConstants,
+          engineLibraries
+        )
+      );
+  }
+}
+
 contract DeployEngineEth is EthereumScript {
   function run() external broadcast {
     DeployEngineEthLib.deploy();
@@ -250,5 +284,11 @@ contract DeployEngineAva is AvalancheScript {
 contract DeployEngineMet is MetisScript {
   function run() external broadcast {
     DeployEngineMetLib.deploy();
+  }
+}
+
+contract DeployEngineBas is BaseScript {
+  function run() external broadcast {
+    DeployEngineBaseLib.deploy();
   }
 }
