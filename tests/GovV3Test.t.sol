@@ -4,7 +4,9 @@ pragma solidity ^0.8.0;
 import 'forge-std/Test.sol';
 import {IVotingMachineWithProofs, GovV3Helpers, PayloadsControllerUtils, IPayloadsControllerCore, GovV3StorageHelpers, IGovernanceCore} from '../src/GovV3Helpers.sol';
 import {GovHelpers} from '../src/GovHelpers.sol';
+import {ProtocolV3TestBase} from '../src/ProtocolV3TestBase.sol';
 import {AaveMisc} from 'aave-address-book/AaveMisc.sol';
+import {AaveV3Ethereum} from 'aave-address-book/AaveV3Ethereum.sol';
 import {AaveGovernanceV2} from 'aave-address-book/AaveGovernanceV2.sol';
 import {GovernanceV3Ethereum} from 'aave-address-book/GovernanceV3Ethereum.sol';
 
@@ -14,18 +16,18 @@ interface Mock {
   function guardian() external view returns (address);
 }
 
-contract GovernanceV3Test is Test {
+contract GovernanceV3Test is ProtocolV3TestBase {
   event TestEvent();
 
   PayloadWithEmit payload;
 
-  address public constant LONG_PROPOSAL = 0x6195a956dC026A949dE552F04a5803d3aa1fC408;
+  uint256 public constant LONG_PROPOSAL_ID = 345;
   address public constant SHORT_PROPOSAL = 0xa59262276dB8F997948fdc4a10cBc1448A375636;
 
   function setUp() public {
-    vm.createSelectFork('mainnet', 18311523);
+    vm.createSelectFork('mainnet', 18363414);
     payload = new PayloadWithEmit();
-    GovHelpers.executePayload(vm, LONG_PROPOSAL, AaveGovernanceV2.LONG_EXECUTOR);
+    GovHelpers.passVoteAndExecute(vm, LONG_PROPOSAL_ID);
     GovHelpers.executePayload(vm, SHORT_PROPOSAL, AaveGovernanceV2.SHORT_EXECUTOR);
   }
 
@@ -93,9 +95,9 @@ contract GovernanceV3Test is Test {
     GovV3StorageHelpers.readyPayloadId(vm, payloadsController, payloadId);
     IPayloadsControllerCore.Payload memory pl = payloadsController.getPayloadById(payloadId);
     assertEq(uint256(pl.state), uint256(IPayloadsControllerCore.PayloadState.Queued));
-    assertEq(pl.queuedAt, 1696751266);
+    assertEq(pl.queuedAt, 1697983463);
     assertEq(uint256(pl.maximumAccessLevelRequired), 1);
-    assertEq(pl.createdAt, 1696837667);
+    assertEq(pl.createdAt, 1698069864);
     assertEq(pl.creator, address(0x7FA9385bE102ac3EAc297483Dd6233D62b3e1496));
   }
 
@@ -145,5 +147,9 @@ contract GovernanceV3Test is Test {
     vm.startPrank(AaveMisc.ECOSYSTEM_RESERVE);
     GovV3Helpers.createProposal(payloads, 'hash');
     vm.stopPrank();
+  }
+
+  function test_helpers() public {
+    defaultTest('default', AaveV3Ethereum.POOL, address(payload));
   }
 }
