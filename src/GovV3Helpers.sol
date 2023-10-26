@@ -16,6 +16,7 @@ import {GovernanceV3Ethereum} from 'aave-address-book/GovernanceV3Ethereum.sol';
 import {GovernanceV3Metis} from 'aave-address-book/GovernanceV3Metis.sol';
 import {GovernanceV3Base} from 'aave-address-book/GovernanceV3Base.sol';
 import {GovernanceV3BNB} from 'aave-address-book/GovernanceV3BNB.sol';
+import {GovernanceV3Gnosis} from 'aave-address-book/GovernanceV3Gnosis.sol';
 import {MiscEthereum} from 'aave-address-book/MiscEthereum.sol';
 import {StorageHelpers} from './StorageHelpers.sol';
 import {ProxyHelpers} from './ProxyHelpers.sol';
@@ -563,6 +564,8 @@ library GovV3Helpers {
       return GovernanceV3Base.PAYLOADS_CONTROLLER;
     } else if (chainId == ChainIds.BNB) {
       return GovernanceV3BNB.PAYLOADS_CONTROLLER;
+    } else if (chainId == ChainIds.GNOSIS) {
+      return GovernanceV3Gnosis.PAYLOADS_CONTROLLER;
     }
 
     revert CannotFindPayloadsController();
