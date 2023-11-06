@@ -38,6 +38,12 @@ contract CommonTestBase is Test {
    */
   function _patchedDeal(address asset, address user, uint256 amount) internal returns (bool) {
     if (block.chainid == ChainIds.MAINNET) {
+      // FXS
+      if (asset == 0x3432B6A60D23Ca0dFCa7761B7ab56459D9C964D0) {
+        vm.startPrank(0xF977814e90dA44bFA03b6295A0616a897441aceC);
+        IERC20(asset).transfer(user, amount);
+        return true;
+      }
       // GUSD
       if (asset == AaveV2EthereumAssets.GUSD_UNDERLYING) {
         vm.startPrank(0x22FFDA6813f4F34C520bf36E5Ea01167bC9DF159);
