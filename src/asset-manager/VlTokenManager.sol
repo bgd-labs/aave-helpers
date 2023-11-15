@@ -11,7 +11,7 @@ import {Common} from './Common.sol';
 /// @author Llama
 abstract contract VlTokenManager is Common {
   using SafeERC20 for IERC20;
-  
+
   event ClaimVLAURARewards();
   event DelegatedVLAURA(address newDelegate);
   event EmergencyWithdraw(uint256 tokensUnlocked);
