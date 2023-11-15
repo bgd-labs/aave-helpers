@@ -125,6 +125,11 @@ contract GovernanceV3Test is ProtocolV3TestBase {
     GovV3Helpers.executePayload(vm, address(payload));
   }
 
+  function test_expectRevertOnNonExistingPayload() public {
+    vm.expectRevert();
+    GovV3Helpers.executePayload(vm, address(1));
+  }
+
   /**
    * Demo: this is more or less how a payload creation script could look like
    */

@@ -18,6 +18,7 @@ import {GovernanceV3Base} from 'aave-address-book/GovernanceV3Base.sol';
 import {GovernanceV3BNB} from 'aave-address-book/GovernanceV3BNB.sol';
 import {GovernanceV3Gnosis} from 'aave-address-book/GovernanceV3Gnosis.sol';
 import {MiscEthereum} from 'aave-address-book/MiscEthereum.sol';
+import {Address} from 'solidity-utils/contracts/oz-common/Address.sol';
 import {StorageHelpers} from './StorageHelpers.sol';
 import {ProxyHelpers} from './ProxyHelpers.sol';
 import {GovHelpers, IAaveGovernanceV2} from './GovHelpers.sol';
@@ -192,10 +193,10 @@ library GovV3Helpers {
     string memory signature,
     bytes memory callData
   ) internal pure returns (IPayloadsControllerCore.ExecutionAction memory) {
-    require(payloadAddress != address(0), 'INVALID PAYLOAD ADDRESS');
+    require(payloadAddress != address(0), 'INVALID_PAYLOAD_ADDRESS');
     require(
       accessLevel != PayloadsControllerUtils.AccessControl.Level_null,
-      'INVALID ACCESS LEVEL'
+      'INVALID_ACCESS_LEVEL'
     );
 
     return
@@ -256,6 +257,7 @@ library GovV3Helpers {
    * @param payloadAddress address of the payload to execute
    */
   function executePayload(Vm vm, address payloadAddress) internal {
+    require(Address.isContract(payloadAddress), 'PAYLOAD_ADDRESS_HAS_NO_CODE');
     IPayloadsControllerCore payloadsController = getPayloadsController(block.chainid);
     IPayloadsControllerCore.ExecutionAction[]
       memory actions = new IPayloadsControllerCore.ExecutionAction[](1);
@@ -474,10 +476,10 @@ library GovV3Helpers {
    * @param vm Vm
    * @param action actions array
    */
-  function buildBNBPayload(Vm vm, IPayloadsControllerCore.ExecutionAction memory action)
-    internal
-    returns (PayloadsControllerUtils.Payload memory)
-  {
+  function buildBNBPayload(
+    Vm vm,
+    IPayloadsControllerCore.ExecutionAction memory action
+  ) internal returns (PayloadsControllerUtils.Payload memory) {
     return _buildPayload(vm, ChainIds.BNB, action);
   }
 
