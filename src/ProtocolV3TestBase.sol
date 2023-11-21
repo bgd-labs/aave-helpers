@@ -111,7 +111,8 @@ contract ProtocolV3TestBase is CommonTestBase {
       // if config existed before
       if (i < configsBeforeLength) {
         // borrow increase should only happen on assets with borrowing enabled
-        if (configBefore[i].borrowCap < configAfter[i].borrowCap) {
+        // unless it is setting a borrow cap for the first time
+        if (configBefore[i].borrowCap < configAfter[i].borrowCap && configBefore[i].borrowCap != 0) {
           require(configAfter[i].borrowingEnabled, 'PL_BORROW_CAP_BORROW_DISABLED');
         }
       } else {
