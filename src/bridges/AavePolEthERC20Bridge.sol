@@ -13,6 +13,8 @@ import {ChainIds} from '../ChainIds.sol';
 import {IAavePolEthERC20Bridge} from './IAavePolEthERC20Bridge.sol';
 
 interface IRootChainManager {
+  function childToRootToken(address token) external view returns (address);
+
   function exit(bytes calldata inputData) external;
 }
 
@@ -34,23 +36,19 @@ contract AavePolEthERC20Bridge is Ownable, Rescuable, IAavePolEthERC20Bridge {
 
   error InvalidChain();
 
-  event Exit();
+  event Exit(bytes proof);
+  event FailedToSendETH();
   event Bridge(address token, uint256 amount);
   event WithdrawToCollector(address token, uint256 amount);
 
   address public constant ROOT_CHAIN_MANAGER = 0xA0c68C638235ee32657e8f720a23ceC1bFc77C77;
 
+  /// @param _owner The owner of the contract upon deployment
   constructor(address _owner) {
     _transferOwnership(_owner);
   }
 
-  /*
-   * This function withdraws an ERC20 token from Polygon to Mainnet. exit() needs
-   * to be called on mainnet with the corresponding burnProof in order to complete.
-   * @notice Polygon only. Function will revert if called from other network.
-   * @param token Polygon address of ERC20 token to withdraw
-   * @param amount Amount of tokens to withdraw
-   */
+  /// @inheritdoc IAavePolEthERC20Bridge
   function bridge(address token, uint256 amount) external onlyOwner {
     if (block.chainid != ChainIds.POLYGON) revert InvalidChain();
 
@@ -58,24 +56,26 @@ contract AavePolEthERC20Bridge is Ownable, Rescuable, IAavePolEthERC20Bridge {
     emit Bridge(token, amount);
   }
 
-  /*
-   * This function completes the withdrawal process from Polygon to Mainnet.
-   * Burn proof is generated via API. Please see README.md
-   * @notice Mainnet only. Function will revert if called from other network.
-   * @param burnProof Burn proof generated via API.
-   */
+  /// @inheritdoc IAavePolEthERC20Bridge
   function exit(bytes calldata burnProof) external {
     if (block.chainid != ChainIds.MAINNET) revert InvalidChain();
 
     IRootChainManager(ROOT_CHAIN_MANAGER).exit(burnProof);
-    emit Exit();
+    emit Exit(burnProof);
   }
 
-  /*
-   * Withdraws tokens on Mainnet contract to Aave V3 Collector.
-   * @notice Mainnet only. Function will revert if called from other network.
-   * @param token Mainnet address of token to withdraw to Collector
-   */
+  /// @inheritdoc IAavePolEthERC20Bridge
+  function exit(bytes[] calldata burnProofs) external {
+    if (block.chainid != ChainIds.MAINNET) revert InvalidChain();
+
+    uint256 proofsLength = burnProofs.length;
+    for (uint256 i = 0; i < proofsLength; ++i) {
+      IRootChainManager(ROOT_CHAIN_MANAGER).exit(burnProofs[i]);
+      emit Exit(burnProofs[i]);
+    }
+  }
+
+  /// @inheritdoc IAavePolEthERC20Bridge
   function withdrawToCollector(address token) external {
     if (block.chainid != ChainIds.MAINNET) revert InvalidChain();
 
@@ -85,7 +85,24 @@ contract AavePolEthERC20Bridge is Ownable, Rescuable, IAavePolEthERC20Bridge {
     emit WithdrawToCollector(token, balance);
   }
 
+  /// @inheritdoc IAavePolEthERC20Bridge
+  function isTokenMapped(address l2token) external view returns (bool) {
+    if (block.chainid != ChainIds.MAINNET) revert InvalidChain();
+
+    return IRootChainManager(ROOT_CHAIN_MANAGER).childToRootToken(l2token) != address(0);
+  }
+
+  /// @inheritdoc Rescuable
   function whoCanRescue() public view override returns (address) {
     return owner();
+  }
+
+  receive() external payable {
+    if (block.chainid != ChainIds.MAINNET) revert InvalidChain();
+
+    (bool success, ) = address(AaveV3Ethereum.COLLECTOR).call{value: address(this).balance}("");
+    if (!success) {
+      emit FailedToSendETH();
+    }
   }
 }
