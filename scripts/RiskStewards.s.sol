@@ -12,7 +12,7 @@ import {AaveV3Arbitrum} from 'aave-address-book/AaveV3Arbitrum.sol';
 import {AaveV3Optimism} from 'aave-address-book/AaveV3Optimism.sol';
 import {AaveV3Base} from 'aave-address-book/AaveV3Base.sol';
 import {AaveV3Gnosis} from 'aave-address-book/AaveV3Gnosis.sol';
-import {AaveV3Bnb} from 'aave-address-book/AaveV3Bnb.sol';
+import {AaveV3BNB} from 'aave-address-book/AaveV3BNB.sol';
 
 contract DeployEth is EthereumScript {
   function run() external broadcast {
@@ -94,11 +94,11 @@ contract DeployGno is GnosisScript {
   }
 }
 
-contract DeployBnb is BNBScript {
+contract DeployBNB is BNBScript {
   function run() external broadcast {
     new CapsPlusRiskSteward(
-      AaveV3Bnb.AAVE_PROTOCOL_DATA_PROVIDER,
-      IAaveV3ConfigEngine(AaveV3Bnb.CONFIG_ENGINE),
+      AaveV3BNB.AAVE_PROTOCOL_DATA_PROVIDER,
+      IAaveV3ConfigEngine(AaveV3BNB.CONFIG_ENGINE),
       0x126dc589cc75f17385dD95516F3F1788d862E7bc
     );
   }

@@ -21,7 +21,7 @@ import {AaveV3Avalanche} from 'aave-address-book/AaveV3Avalanche.sol';
 import {AaveV3Metis} from 'aave-address-book/AaveV3Metis.sol';
 import {AaveV3Base} from 'aave-address-book/AaveV3Base.sol';
 import {AaveV3Gnosis} from 'aave-address-book/AaveV3Gnosis.sol';
-import {AaveV3Bnb} from 'aave-address-book/AaveV3Bnb.sol';
+import {AaveV3BNB} from 'aave-address-book/AaveV3BNB.sol';
 import {ITransparentProxyFactory} from 'solidity-utils/contracts/transparent-proxy/interfaces/ITransparentProxyFactory.sol';
 import {V3RateStrategyFactory} from '../src/v3-config-engine/V3RateStrategyFactory.sol';
 
@@ -175,7 +175,7 @@ library DeployRatesFactoryBnbLib {
   function deploy() internal returns (address, address[] memory) {
     return
       DeployRatesFactoryLib._createAndSetupRatesFactory(
-        AaveV3Bnb.POOL_ADDRESSES_PROVIDER,
+        AaveV3BNB.POOL_ADDRESSES_PROVIDER,
         MiscBNB.TRANSPARENT_PROXY_FACTORY,
         MiscBNB.PROXY_ADMIN
       );

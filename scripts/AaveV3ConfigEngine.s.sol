@@ -6,7 +6,7 @@ import {AaveV3ConfigEngine as Engine} from '../src/v3-config-engine/AaveV3Config
 import {IAaveV3ConfigEngine as IEngine} from '../src/v3-config-engine/IAaveV3ConfigEngine.sol';
 import {IV3RateStrategyFactory} from '../src/v3-config-engine/IV3RateStrategyFactory.sol';
 import {AaveV3Ethereum} from 'aave-address-book/AaveV3Ethereum.sol';
-import {AaveV3Bnb} from 'aave-address-book/AaveV3Bnb.sol';
+import {AaveV3BNB} from 'aave-address-book/AaveV3BNB.sol';
 import {AaveV3Optimism} from 'aave-address-book/AaveV3Optimism.sol';
 import {AaveV3Arbitrum} from 'aave-address-book/AaveV3Arbitrum.sol';
 import {AaveV3Polygon} from 'aave-address-book/AaveV3Polygon.sol';
@@ -298,20 +298,20 @@ library DeployEngineBnbLib {
       capsEngine: Create2Utils._create2Deploy('v1', type(CapsEngine).creationCode)
     });
     IEngine.EngineConstants memory engineConstants = IEngine.EngineConstants({
-      pool: AaveV3Bnb.POOL,
-      poolConfigurator: AaveV3Bnb.POOL_CONFIGURATOR,
-      ratesStrategyFactory: IV3RateStrategyFactory(AaveV3Bnb.RATES_FACTORY),
-      oracle: AaveV3Bnb.ORACLE,
-      rewardsController: AaveV3Bnb.DEFAULT_INCENTIVES_CONTROLLER,
-      collector: address(AaveV3Bnb.COLLECTOR)
+      pool: AaveV3BNB.POOL,
+      poolConfigurator: AaveV3BNB.POOL_CONFIGURATOR,
+      ratesStrategyFactory: IV3RateStrategyFactory(AaveV3BNB.RATES_FACTORY),
+      oracle: AaveV3BNB.ORACLE,
+      rewardsController: AaveV3BNB.DEFAULT_INCENTIVES_CONTROLLER,
+      collector: address(AaveV3BNB.COLLECTOR)
     });
 
     return
       address(
         new Engine(
-          AaveV3Bnb.DEFAULT_A_TOKEN_IMPL_REV_1,
-          AaveV3Bnb.DEFAULT_VARIABLE_DEBT_TOKEN_IMPL_REV_1,
-          AaveV3Bnb.DEFAULT_STABLE_DEBT_TOKEN_IMPL_REV_1,
+          AaveV3BNB.DEFAULT_A_TOKEN_IMPL_REV_1,
+          AaveV3BNB.DEFAULT_VARIABLE_DEBT_TOKEN_IMPL_REV_1,
+          AaveV3BNB.DEFAULT_STABLE_DEBT_TOKEN_IMPL_REV_1,
           engineConstants,
           engineLibraries
         )
