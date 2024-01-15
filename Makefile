@@ -24,6 +24,7 @@ deploy-engine-met :; forge script scripts/AaveV3ConfigEngine.s.sol:DeployEngineM
 deploy-engine-bas :; forge script scripts/AaveV3ConfigEngine.s.sol:DeployEngineBas --rpc-url base --broadcast --legacy --ledger --mnemonic-indexes ${MNEMONIC_INDEX} --sender ${LEDGER_SENDER} --verify -vvvv
 deploy-engine-gno :; forge script scripts/AaveV3ConfigEngine.s.sol:DeployEngineGno --rpc-url gnosis --broadcast --legacy --ledger --mnemonic-indexes ${MNEMONIC_INDEX} --sender ${LEDGER_SENDER} --verify -vvvv
 deploy-engine-bnb :; forge script scripts/AaveV3ConfigEngine.s.sol:DeployEngineBnb --rpc-url bnb --broadcast --legacy --ledger --mnemonic-indexes ${MNEMONIC_INDEX} --sender ${LEDGER_SENDER} --verify -vvvv
+deploy-engine-scroll :; forge script scripts/AaveV3ConfigEngine.s.sol:DeployEngineScroll --rpc-url scroll --broadcast --legacy --ledger --mnemonic-indexes ${MNEMONIC_INDEX} --sender ${LEDGER_SENDER} --verify -vvvv
 deploy-engine-zkevm :; forge script scripts/AaveV3ConfigEngine.s.sol:DeployEngineZkEvm --rpc-url zkevm --broadcast --legacy --ledger --mnemonic-indexes ${MNEMONIC_INDEX} --sender ${LEDGER_SENDER} --verify -vvvv
 
 deploy-rates-factory-eth :; forge script scripts/V3RateStrategyFactory.s.sol:DeployRatesFactoryEth --rpc-url mainnet --broadcast --legacy --ledger --mnemonic-indexes ${MNEMONIC_INDEX} --sender ${LEDGER_SENDER} --verify -vvvv
@@ -33,6 +34,7 @@ deploy-rates-factory-arb :; forge script scripts/V3RateStrategyFactory.s.sol:Dep
 deploy-rates-factory-ava :; forge script scripts/V3RateStrategyFactory.s.sol:DeployRatesFactoryAva --rpc-url avalanche --broadcast --legacy --ledger --mnemonic-indexes ${MNEMONIC_INDEX} --sender ${LEDGER_SENDER} --verify -vvvv
 deploy-rates-factory-met :; forge script scripts/V3RateStrategyFactory.s.sol:DeployRatesFactoryMet --rpc-url metis --broadcast --legacy --ledger --mnemonic-indexes ${MNEMONIC_INDEX} --sender ${LEDGER_SENDER} --verify -vvvv
 deploy-rates-factory-bas :; forge script scripts/V3RateStrategyFactory.s.sol:DeployRatesFactoryBas --rpc-url base --broadcast --legacy --ledger --mnemonic-indexes ${MNEMONIC_INDEX} --sender ${LEDGER_SENDER} --verify -vvvv
+deploy-rates-factory-scroll :; forge script scripts/V3RateStrategyFactory.s.sol:DeployRatesFactoryScroll--rpc-url scroll --broadcast --legacy --ledger --mnemonic-indexes ${MNEMONIC_INDEX} --sender ${LEDGER_SENDER} --verify -vvvv
 deploy-rates-factory-gno :; forge script scripts/V3RateStrategyFactory.s.sol:DeployRatesFactoryGno --rpc-url gnosis --broadcast --legacy --ledger --mnemonic-indexes ${MNEMONIC_INDEX} --sender ${LEDGER_SENDER} --verify -vvvv
 deploy-rates-factory-bnb :; forge script scripts/V3RateStrategyFactory.s.sol:DeployRatesFactoryBnb --rpc-url bnb --broadcast --legacy --ledger --mnemonic-indexes ${MNEMONIC_INDEX} --sender ${LEDGER_SENDER} --verify -vvvv
 deploy-rates-factory-zkevm :; forge script scripts/V3RateStrategyFactory.s.sol:DeployRatesFactoryZkEvm --rpc-url zkevm --broadcast --legacy --ledger --mnemonic-indexes ${MNEMONIC_INDEX} --sender ${LEDGER_SENDER} --verify -vvvv
@@ -50,10 +52,12 @@ deploy-steward-met :; forge script scripts/RiskStewards.s.sol:DeployMet --rpc-ur
 deploy-steward-bas :; forge script scripts/RiskStewards.s.sol:DeployBas --rpc-url base --broadcast --ledger --legacy --mnemonic-indexes ${MNEMONIC_INDEX} --sender ${LEDGER_SENDER} --verify -vvvv
 deploy-steward-gno :; forge script scripts/RiskStewards.s.sol:DeployGno --rpc-url gnosis --broadcast --legacy --ledger --legacy --mnemonic-indexes ${MNEMONIC_INDEX} --sender ${LEDGER_SENDER} --verify -vvvv
 deploy-steward-bnb :; forge script scripts/RiskStewards.s.sol:DeployBnb --rpc-url bnb --broadcast  --legacy --ledger --legacy --mnemonic-indexes ${MNEMONIC_INDEX} --sender ${LEDGER_SENDER} --verify -vvvv
+deploy-steward-scroll :; forge script scripts/RiskStewards.s.sol:DeployScroll --rpc-url scroll --broadcast --legacy --ledger --legacy --mnemonic-indexes ${MNEMONIC_INDEX} --sender ${LEDGER_SENDER} --verify -vvvv
 deploy-steward-zkevm :; forge script scripts/RiskStewards.s.sol:DeployZkEvm --rpc-url zkevm --broadcast --legacy --ledger --legacy --mnemonic-indexes ${MNEMONIC_INDEX} --sender ${LEDGER_SENDER} --verify -vvvv
 
 deploy-freezing-steward-bnb :; forge script scripts/FreezingStewards.s.sol:DeployBnb --rpc-url bnb --broadcast --legacy --ledger --legacy --mnemonic-indexes ${MNEMONIC_INDEX} --sender ${LEDGER_SENDER} --verify -vvvv
 deploy-freezing-steward-gno :; forge script scripts/FreezingStewards.s.sol:DeployGno --rpc-url gnosis --broadcast --legacy --ledger --legacy --mnemonic-indexes ${MNEMONIC_INDEX} --sender ${LEDGER_SENDER} --verify -vvvv
+deploy-freezing-steward-scroll :; forge script scripts/FreezingStewards.s.sol:DeployScroll --rpc-url scroll --broadcast --legacy --ledger --mnemonic-indexes ${MNEMONIC_INDEX} --sender ${LEDGER_SENDER} --verify -vvvv
 deploy-freezing-steward-zkevm :; forge script scripts/FreezingStewards.s.sol:DeployZkEvm --rpc-url zkevm --broadcast --legacy --ledger --legacy --mnemonic-indexes ${MNEMONIC_INDEX} --sender ${LEDGER_SENDER} --verify -vvvv
 
 deploy-rates-factory-v2-eth :; forge script scripts/V2RateStrategyFactory.s.sol:DeployV2RatesFactoryEth --mnemonics random --rpc-url mainnet --broadcast --ledger --mnemonic-indexes ${MNEMONIC_INDEX} --sender ${LEDGER_SENDER} --verify -vvvv
