@@ -18,17 +18,13 @@ interface Mock {
 
 contract GovernanceV3Test is ProtocolV3TestBase {
   event TestEvent();
+  error CannotFindPayload();
 
   PayloadWithEmit payload;
 
-  uint256 public constant LONG_PROPOSAL_ID = 345;
-  address public constant SHORT_PROPOSAL = 0xa59262276dB8F997948fdc4a10cBc1448A375636;
-
   function setUp() public {
-    vm.createSelectFork('mainnet', 18363414);
+    vm.createSelectFork('mainnet', 18993187);
     payload = new PayloadWithEmit();
-    GovHelpers.passVoteAndExecute(vm, LONG_PROPOSAL_ID);
-    GovHelpers.executePayload(vm, SHORT_PROPOSAL, AaveGovernanceV2.SHORT_EXECUTOR);
   }
 
   function test_injectProposalIntoGovernance() public {
@@ -156,5 +152,15 @@ contract GovernanceV3Test is ProtocolV3TestBase {
 
   function test_helpers() public {
     defaultTest('default', AaveV3Ethereum.POOL, address(payload));
+  }
+
+  function testFail_findPayload() public {
+    IPayloadsControllerCore.ExecutionAction[]
+      memory actions = new IPayloadsControllerCore.ExecutionAction[](1);
+    actions[0] = GovV3Helpers.buildAction(address(42));
+
+    // should revert as payload 0x42 does not exist
+    vm.expectRevert(CannotFindPayload.selector);
+    GovV3Helpers.buildMainnetPayload(vm, actions);
   }
 }
