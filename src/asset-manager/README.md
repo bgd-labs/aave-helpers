@@ -144,6 +144,88 @@ Unlock vlAURA position into AURA. Lock period needs to have passed or it will re
 
 Emergency function to exit a position if the AURA system is shut down.
 
+```
+function claimQuestBoardRewards(
+    uint256 questID,
+    uint256 period,
+    uint256 index,
+    address account,
+    uint256 amount,
+    bytes32[] calldata merkleProof
+  ) external onlyOwnerOrGuardian
+```
+
+Claims QuestBoard rewards from Paladin. Proofs are generated after the checkpoint happens (usually Thursdays) and can be found using the following endpoint:
+`https://api.paladin.vote/quest/v2/copilot/claims/{address}` where address is the address that holds the tokens and is doing the voting.
+
+All the proofs generated are there, so there is a need to check if the claim has been already done. This can be checked using the contract for the distribution which is `QUESTBOARD_DISTRIBUTOR_VEBAL` on the VlTokenManager.sol contract, which has an `isClaimed` function.
+
+```
+function claimDelegatedQuestBoardRewards(
+    address token,
+    uint256 index,
+    address account,
+    uint256 amount,
+    bytes32[] calldata merkleProof
+  ) external onlyOwnerOrGuardian
+```
+
+Claims QuestBoard rewards from Paladin when vlAURA has been delegated to Paladin. Proofs are generated after the checkpoint happens (usually Thursdays) and can be found using the following endpoint:
+`https://api.paladin.vote/quest/v2/copilot/claims/{address}` where address is the address that holds the tokens and is doing the voting.
+
+Unlike for the regular QuestBoard rewards, this endpoint only returns unclaimed proofs.
+
+```
+function createFixedQuest(
+    address gauge,
+    address rewardToken,
+    bool startNextPeriod,
+    uint48 duration,
+    uint256 rewardPerVote,
+    uint256 totalRewardAmount,
+    uint256 feeAmount,
+    QuestVoteType voteType,
+    QuestCloseType closeType,
+    address[] calldata voterList
+  ) external onlyOwnerOrGuardian returns (uint256)
+```
+
+Created a quest where the rewards are fixed per vote. It returns the Quest ID of the newly created Quest. More information can be found [here](https://doc.paladin.vote/quest-v2/creating-a-quest/fixed-quests).
+
+```
+function createRangedQuest(
+    address gauge,
+    address rewardToken,
+    bool startNextPeriod,
+    uint48 duration,
+    uint256 minRewardPerVote,
+    uint256 maxRewardPerVote,
+    uint256 totalRewardAmount,
+    uint256 feeAmount,
+    QuestVoteType voteType,
+    QuestCloseType closeType,
+    address[] calldata voterList
+  ) external onlyOwnerOrGuardian returns (uint256)
+```
+
+Created a quest where the rewards are variable per vote. It returns the Quest ID of the newly created Quest. More information can be found [here](https://doc.paladin.vote/quest-v2/creating-a-quest/ranged-quests).
+
+```
+function extendQuestDuration(
+    uint256 questID,
+    address rewardToken,
+    uint48 addedDuration,
+    uint256 addedRewardAmount,
+    uint256 feeAmount
+  ) external onlyOwnerOrGuardian
+```
+
+Extends an existing Quest's duration in terms of weeks.
+
+`function withdrawUnusedRewards(uint256 questId) external onlyOwnerOrGuardian`
+
+If a Quest still has any leftover rewards that were not earned by voters, these can be claimed by calling this function.
+
 ##### LSDLiquidityGaugeManager.sol
 
 `function setGaugeController(address token, address gaugeController) public onlyOwnerOrGuardian`
