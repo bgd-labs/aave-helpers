@@ -70,6 +70,10 @@ deploy-config-engine-v2-eth-amm :; forge script scripts/AaveV2ConfigEngine.s.sol
 deploy-config-engine-v2-pol :; forge script scripts/AaveV2ConfigEngine.s.sol:DeployV2EnginePol --mnemonics random --rpc-url polygon --broadcast --legacy --ledger --mnemonic-indexes ${MNEMONIC_INDEX} --sender ${LEDGER_SENDER} --verify -vvvv
 deploy-config-engine-v2-ava :; forge script scripts/AaveV2ConfigEngine.s.sol:DeployV2EngineAva --mnemonics random --rpc-url avalanche --broadcast --legacy --ledger --mnemonic-indexes ${MNEMONIC_INDEX} --sender ${LEDGER_SENDER} --verify -vvvv
 
+# Swap live-tests
+test-swap :; forge script src/swaps/scripts/TestSwap.s.sol:TestSwap --mnemonics random --rpc-url mainnet --broadcast --ledger --mnemonic-indexes ${MNEMONIC_INDEX} --sender ${LEDGER_SENDER} --verify -vvvv
+cancel-swap :; forge script src/swaps/scripts/TestSwap.s.sol:TestSwap --mnemonics random --rpc-url mainnet --broadcast --ledger --mnemonic-indexes ${MNEMONIC_INDEX} --sender ${LEDGER_SENDER} --verify -vvvv
+
 # Utilities
 download :; cast etherscan-source --chain ${chain} -d src/etherscan/${chain}_${address} ${address}
 git-diff :
@@ -78,3 +82,5 @@ git-diff :
 
 # Voting scripts
 vote :;  forge script scripts/VotingScripts.s.sol:VoteForProposal --rpc-url mainnet --broadcast --ledger --mnemonic-indexes ${MNEMONIC_INDEX} --sender ${LEDGER_SENDER} --verify -vvvv ${proposalId} ${support}
+
+deploy-pk :; forge script ${contract} --rpc-url ${chain} $(if ${dry},--sender 0x25F2226B597E8F9514B3F68F00f494cF4f286491 -vvvv,--broadcast --private-key ${PRIVATE_KEY} --verify -vvvv --slow)
