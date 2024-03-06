@@ -14,28 +14,28 @@ Callable on Mainnet. Returns whether a token mapping exists between Polygon and 
 
 Here's a list of Polygon Aave V2 and Aave V3 tokens and whether they are mapped or not, and respective transactions showing a bridge.
 
-| Token | Is Mapped | Burn | Exit |
-| --- | --- | --- | --- |
-| USDC | yes | [Tx](https://polygonscan.com/tx/0xd670439927d5b067b742e79a2c2f8ac375f38ac0fe77b77bfcdd5a4d7b60f8b7) | [Tx](https://etherscan.io/tx/0x5b410b2d35acefe23785fca64242521503720c89540cba7580a96c7d48de65ff) |
-| DAI | yes | [Tx](https://polygonscan.com/tx/0x3827bda3f18f117b1b216b2152465708a6e72dfb8bbb2f91c0dcf7a19f817fcc) | [Tx](https://etherscan.io/tx/0x5b410b2d35acefe23785fca64242521503720c89540cba7580a96c7d48de65ff) |
-| LINK | yes | [Tx](https://polygonscan.com/tx/0x5cbe8749bb496627ab6f53c3ef7f8b451c2f9a3e7933c0231f09d70696615e20) | [Tx](https://etherscan.io/tx/0x5b410b2d35acefe23785fca64242521503720c89540cba7580a96c7d48de65ff) |
-| WBTC | yes | [Tx](https://polygonscan.com/tx/0xd95ba8488fb67146b7a5946977db3c74433928c0cf1ef08802e46b40cd8a53d6) | [Tx](https://etherscan.io/tx/0x5b410b2d35acefe23785fca64242521503720c89540cba7580a96c7d48de65ff) |
-| CRV | yes | [Tx](https://polygonscan.com/tx/0x144f5532d1bf88bbdbd914c9d79caaf7e3861aefb0412db69fd46136a4232246) | [Tx](https://etherscan.io/tx/0x5b410b2d35acefe23785fca64242521503720c89540cba7580a96c7d48de65ff) |
-| BAL | yes | [Tx](https://polygonscan.com/tx/0xafa75edc210566b4d9e3b0986c433f77531eae8a3fb51d4b4e27bf0b241782bb) | [Tx](https://etherscan.io/tx/0x5b410b2d35acefe23785fca64242521503720c89540cba7580a96c7d48de65ff) |
-| USDT | yes | [Tx](https://polygonscan.com/tx/0xfd091ad2753435126d09c88168234a0c8d536ebc1c942359f02081f8a9d595a2) | [Tx](https://etherscan.io/tx/0x5b410b2d35acefe23785fca64242521503720c89540cba7580a96c7d48de65ff) | [Tx](https://polygonscan.com/tx/0x5b410b2d35acefe23785fca64242521503720c89540cba7580a96c7d48de65ff) |
-| WETH | yes | [Tx](https://polygonscan.com/tx/0x813c4821f5da822a0f60db31070ca025f57ff81953f42f95270a77bc941b266d) | [Tx](https://etherscan.io/tx/0x5b410b2d35acefe23785fca64242521503720c89540cba7580a96c7d48de65ff) |
-| WMATIC | NO | NO | NO |
-| AAVE | yes | [Tx](https://polygonscan.com/tx/0x338f0b763cd4f4080cb0f54a8b76172cd750a21d3f2960ef6e19960a0e9c7df2) | [Tx](https://etherscan.io/tx/0x5b410b2d35acefe23785fca64242521503720c89540cba7580a96c7d48de65ff) |
-| GHST | yes | | |
-| DPI | yes | | |
-| SUSHI | yes | | |
-| EURS | yes | | |
-| jEUR | NO | NO | NO |
-| agEUR | yes | | |
-| miMATIC | NO | NO | NO |
-| stMATIC | yes | | |
-| MaticX  | yes | | |
-| wstETH  | yes | [Tx](https://polygonscan.com/tx/0x30a6f403211fea0edcd2fcd89e505eb0bd6b584a375482e80beec21537a20291) | [Tx](https://etherscan.io/tx/0xa521582be2bb589055827d1556acc4255dad981286ec01942a991b0d31edceaa) |
+| Token   | Is Mapped | Burn                                                                                                | Exit                                                                                             |
+| ------- | --------- | --------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------- |
+| USDC    | yes       | [Tx](https://polygonscan.com/tx/0xd670439927d5b067b742e79a2c2f8ac375f38ac0fe77b77bfcdd5a4d7b60f8b7) | [Tx](https://etherscan.io/tx/0x5b410b2d35acefe23785fca64242521503720c89540cba7580a96c7d48de65ff) |
+| DAI     | yes       | [Tx](https://polygonscan.com/tx/0x3827bda3f18f117b1b216b2152465708a6e72dfb8bbb2f91c0dcf7a19f817fcc) | [Tx](https://etherscan.io/tx/0x5b410b2d35acefe23785fca64242521503720c89540cba7580a96c7d48de65ff) |
+| LINK    | yes       | [Tx](https://polygonscan.com/tx/0x5cbe8749bb496627ab6f53c3ef7f8b451c2f9a3e7933c0231f09d70696615e20) | [Tx](https://etherscan.io/tx/0x5b410b2d35acefe23785fca64242521503720c89540cba7580a96c7d48de65ff) |
+| WBTC    | yes       | [Tx](https://polygonscan.com/tx/0xd95ba8488fb67146b7a5946977db3c74433928c0cf1ef08802e46b40cd8a53d6) | [Tx](https://etherscan.io/tx/0x5b410b2d35acefe23785fca64242521503720c89540cba7580a96c7d48de65ff) |
+| CRV     | yes       | [Tx](https://polygonscan.com/tx/0x144f5532d1bf88bbdbd914c9d79caaf7e3861aefb0412db69fd46136a4232246) | [Tx](https://etherscan.io/tx/0x5b410b2d35acefe23785fca64242521503720c89540cba7580a96c7d48de65ff) |
+| BAL     | yes       | [Tx](https://polygonscan.com/tx/0xafa75edc210566b4d9e3b0986c433f77531eae8a3fb51d4b4e27bf0b241782bb) | [Tx](https://etherscan.io/tx/0x5b410b2d35acefe23785fca64242521503720c89540cba7580a96c7d48de65ff) |
+| USDT    | yes       | [Tx](https://polygonscan.com/tx/0xfd091ad2753435126d09c88168234a0c8d536ebc1c942359f02081f8a9d595a2) | [Tx](https://etherscan.io/tx/0x5b410b2d35acefe23785fca64242521503720c89540cba7580a96c7d48de65ff) | [Tx](https://polygonscan.com/tx/0x5b410b2d35acefe23785fca64242521503720c89540cba7580a96c7d48de65ff) |
+| WETH    | yes       | [Tx](https://polygonscan.com/tx/0x813c4821f5da822a0f60db31070ca025f57ff81953f42f95270a77bc941b266d) | [Tx](https://etherscan.io/tx/0x5b410b2d35acefe23785fca64242521503720c89540cba7580a96c7d48de65ff) |
+| WMATIC  | NO        | NO                                                                                                  | NO                                                                                               |
+| AAVE    | yes       | [Tx](https://polygonscan.com/tx/0x338f0b763cd4f4080cb0f54a8b76172cd750a21d3f2960ef6e19960a0e9c7df2) | [Tx](https://etherscan.io/tx/0x5b410b2d35acefe23785fca64242521503720c89540cba7580a96c7d48de65ff) |
+| GHST    | yes       |                                                                                                     |                                                                                                  |
+| DPI     | yes       |                                                                                                     |                                                                                                  |
+| SUSHI   | yes       |                                                                                                     |                                                                                                  |
+| EURS    | yes       |                                                                                                     |                                                                                                  |
+| jEUR    | NO        | NO                                                                                                  | NO                                                                                               |
+| agEUR   | yes       |                                                                                                     |                                                                                                  |
+| miMATIC | NO        | NO                                                                                                  | NO                                                                                               |
+| stMATIC | yes       |                                                                                                     |                                                                                                  |
+| MaticX  | yes       |                                                                                                     |                                                                                                  |
+| wstETH  | yes       | [Tx](https://polygonscan.com/tx/0x30a6f403211fea0edcd2fcd89e505eb0bd6b584a375482e80beec21537a20291) | [Tx](https://etherscan.io/tx/0xa521582be2bb589055827d1556acc4255dad981286ec01942a991b0d31edceaa) |
 
 `function bridge(address token, uint256 amount) external;`
 
@@ -61,6 +61,32 @@ Callable on Polygon. Withdraws tokens from bridge contract back to Aave Collecto
 `receive() external payable;`
 
 Function to receive Ether and forward it to Aave Collector. If not mainnet, it will revert.
+
+# Matic Plasma Bridge
+
+The Plasma bridge is utilized to transfer MATIC (the native token) from Polygon to Mainnet. Exits on the Plasma bridge only take up to 10 logs per transaction, therefore, DO NOT do multiple withdrawals on the same transaction via Matic. The more straightforward path is to just send Matic to the bridge and call the `bridge()` function in the transaction so that the proof is not polluted with multiple events.
+
+Unlike the ERC20 bridge, the Plasma bridge takes 3 steps to complete instead of two.
+
+The first step is still via:
+
+`function bridge(address token, uint256 amount) external;`
+
+Callable on Polygon to withdraw ERC20 token. It withdraws `amount` of passed `token` to mainnet.
+
+The second step is:
+
+`function confirmExit(bytes calldata burnProof) external;`
+
+Callable on Mainnet. This step confirms a withdrawal after 30-90 minutes with the generate proof.
+
+The last step is:
+
+`function exit(address token) external;`
+
+Callable on Mainnet. After 2 checkpoints have happend and after the second step, this function will be callable to withraw the tokens from Polygon to this contract.
+
+The other functions are the same.
 
 ## Burn Proof Generation
 
@@ -88,5 +114,10 @@ An array of proofs can be passed to the `exit(bytes[] memory proofs)` function t
 
 ## Deployed Addresses
 
+ERC20
 Mainnet: [0x1C2BA5b8ab8e795fF44387ba6d251fa65AD20b36](https://etherscan.io/address/0x1C2BA5b8ab8e795fF44387ba6d251fa65AD20b36)
 Polygon: [0x1C2BA5b8ab8e795fF44387ba6d251fa65AD20b36](https://polygonscan.com/address/0x1C2BA5b8ab8e795fF44387ba6d251fa65AD20b36)
+
+Plasma
+Mainnet: [](https://etherscan.io/address/)
+Polygon: [](https://polygonscan.com/address/)
