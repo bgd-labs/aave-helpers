@@ -69,6 +69,7 @@ library GovV3Helpers {
   error ExecutorNotFound();
   error LongBytesNotSupportedYet();
   error FfiFailed();
+  error PayloadAlreadyCreated();
 
   struct StorageRootResponse {
     address account;
@@ -94,7 +95,7 @@ library GovV3Helpers {
   ) internal returns (IVotingMachineWithProofs.VotingBalanceProof[] memory) {
     string[] memory inputs = new string[](8);
     inputs[0] = 'npx';
-    inputs[1] = '@bgd-labs/aave-cli@^0.9.3';
+    inputs[1] = '@bgd-labs/aave-cli@^0.12.0';
     inputs[2] = 'governance';
     inputs[3] = 'getVotingProofs';
     inputs[4] = '--proposalId';
@@ -120,7 +121,7 @@ library GovV3Helpers {
   ) internal returns (StorageRootResponse[] memory) {
     string[] memory inputs = new string[](6);
     inputs[0] = 'npx';
-    inputs[1] = '@bgd-labs/aave-cli@^0.9.3';
+    inputs[1] = '@bgd-labs/aave-cli@^0.12.0';
     inputs[2] = 'governance';
     inputs[3] = 'getStorageRoots';
     inputs[4] = '--proposalId';
@@ -271,11 +272,19 @@ library GovV3Helpers {
    */
   function createPayload(
     IPayloadsControllerCore.ExecutionAction[] memory actions
-  ) internal returns (uint40) {
+  ) public returns (uint40) {
     IPayloadsControllerCore payloadsController = getPayloadsController(block.chainid);
     require(actions.length > 0, 'INVALID ACTIONS');
 
-    return payloadsController.createPayload(actions);
+    (, IPayloadsControllerCore.Payload memory payload, bool payloadCreated) = _findCreatedPayload(
+      payloadsController,
+      actions
+    );
+    if (payloadCreated && payload.createdAt > block.timestamp - 7 days) {
+      revert PayloadAlreadyCreated();
+    } else {
+      return payloadsController.createPayload(actions);
+    }
   }
 
   function createPayload(
@@ -781,20 +790,37 @@ library GovV3Helpers {
     return (payload.maximumAccessLevelRequired, payloadId);
   }
 
-  function _findPayloadId(
+  function _findCreatedPayload(
     IPayloadsControllerCore payloadsController,
     IPayloadsControllerCore.ExecutionAction[] memory actions
-  ) private view returns (uint40, IPayloadsControllerCore.Payload memory) {
+  ) private view returns (uint40, IPayloadsControllerCore.Payload memory, bool) {
     uint40 count = payloadsController.getPayloadsCount();
     for (uint40 payloadId = count; payloadId > 0; payloadId--) {
       IPayloadsControllerCore.Payload memory payload = payloadsController.getPayloadById(
         payloadId - 1
       );
       if (_actionsAreEqual(actions, payload.actions)) {
-        return (payloadId - 1, payload);
+        return (payloadId - 1, payload, true);
       }
     }
-    revert CannotFindPayload();
+    IPayloadsControllerCore.Payload memory emptyPayload;
+    return (type(uint40).max, emptyPayload, false);
+  }
+
+  function _findPayloadId(
+    IPayloadsControllerCore payloadsController,
+    IPayloadsControllerCore.ExecutionAction[] memory actions
+  ) private view returns (uint40, IPayloadsControllerCore.Payload memory) {
+    (
+      uint40 payloadId,
+      IPayloadsControllerCore.Payload memory payload,
+      bool payloadCreated
+    ) = _findCreatedPayload(payloadsController, actions);
+    if (payloadCreated) {
+      return (payloadId, payload);
+    } else {
+      revert CannotFindPayload();
+    }
   }
 
   function _actionsAreEqual(
