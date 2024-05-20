@@ -12,8 +12,42 @@ on:
 
 jobs:
   test:
-    uses: bgd-labs/github-workflows/.github/workflows/foundry-test.yml@main
-    secrets: inherit
-  release:
-    needs: [test]
-    uses: bgd-labs/github-workflows/.github/workflows/release.yml@main
+    name: zkSync Foundry build and test
+    runs-on: ubuntu-latest
+    env:
+      FOUNDRY_PROFILE: ci
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: recursive
+          ref: ${{ inputs.ref }}
+          fetch-depth: 0
+      - name: Setup env
+        uses: bgd-labs/github-workflows/.github/actions/env@main
+        with:
+          RPC_MAINNET: ${{secrets.RPC_MAINNET}}
+          RPC_POLYGON: ${{secrets.RPC_POLYGON}}
+          RPC_AVALANCHE: ${{secrets.RPC_AVALANCHE}}
+          RPC_OPTIMISM: ${{secrets.RPC_OPTIMISM}}
+          RPC_ARBITRUM: ${{secrets.RPC_ARBITRUM}}
+          RPC_METIS: ${{secrets.RPC_METIS}}
+          RPC_BASE: ${{secrets.RPC_BASE}}
+          RPC_GNOSIS: ${{secrets.RPC_GNOSIS}}
+          RPC_BNB: ${{secrets.RPC_BNB}}
+          RPC_ZKEVM: ${{secrets.RPC_ZKEVM}}
+          RPC_SCROLL: ${{secrets.RPC_SCROLL}}
+      - name: Install Rust
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+            toolchain: nightly-2024-02-06
+      - name: Clone Foundry ZkSync
+        run: git clone https://github.com/matter-labs/foundry-zksync --depth=1 -b dev
+      - name: Build forge binary
+        run: |
+          cd foundry-zksync
+          cargo build --release --bin forge
+      - name: Run tests using built binary
+        run: |
+          cd ..
+          forge test --zksync
+

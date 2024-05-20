@@ -12,8 +12,9 @@ import {AaveV3Metis} from 'aave-address-book/AaveV3Metis.sol';
 import {PayloadWithEmit} from './mocks/PayloadWithEmit.sol';
 
 contract ProtocolV3TestBaseTest is ProtocolV3TestBase {
-  function setUp() public {
+  function setUp() public override {
     vm.createSelectFork('polygon', 47135218);
+    super.setUp();
   }
 
   function test_e2eTestDPI() public {
@@ -38,8 +39,9 @@ contract ProtocolV3TestBaseTest is ProtocolV3TestBase {
 }
 
 contract ProtocolV3TestE2ETestAsset is ProtocolV3TestBase {
-  function setUp() public {
+  function setUp() public override {
     vm.createSelectFork('optimism', 105565839);
+    super.setUp();
   }
 
   function test_e2eTestAssetMAI() public {
@@ -62,8 +64,9 @@ contract ProtocolV3TestE2ETestAsset is ProtocolV3TestBase {
 }
 
 contract ProtocolV3TestE2ETestOptimismAll is ProtocolV3TestBase {
-  function setUp() public {
+  function setUp() public override {
     vm.createSelectFork('optimism', 105213914);
+    super.setUp();
   }
 
   function test_e2e() public {
@@ -72,8 +75,9 @@ contract ProtocolV3TestE2ETestOptimismAll is ProtocolV3TestBase {
 }
 
 contract ProtocolV3TestE2ETestMetisAll is ProtocolV3TestBase {
-  function setUp() public {
+  function setUp() public override {
     vm.createSelectFork('metis', 10115177);
+    super.setUp();
   }
 
   function test_e2e() public {
@@ -82,8 +86,9 @@ contract ProtocolV3TestE2ETestMetisAll is ProtocolV3TestBase {
 }
 
 contract ProtocolV3TestE2ETestAvalancheAll is ProtocolV3TestBase {
-  function setUp() public {
+  function setUp() public override {
     vm.createSelectFork('avalanche', 38700698);
+    super.setUp();
   }
 
   function test_e2e() public {
@@ -96,8 +101,9 @@ contract ProtocolV3TestE2ETestAvalancheAll is ProtocolV3TestBase {
 }
 
 contract ProtocolV3TestE2ETestArbitrumAll is ProtocolV3TestBase {
-  function setUp() public {
+  function setUp() public override {
     vm.createSelectFork('arbitrum', 164285417);
+    super.setUp();
   }
 
   function test_e2e() public {
@@ -110,8 +116,9 @@ contract ProtocolV3TestE2ETestArbitrumAll is ProtocolV3TestBase {
 }
 
 contract ProtocolV3TestE2ETestAllMainnet is ProtocolV3TestBase {
-  function setUp() public {
+  function setUp() public override {
     vm.createSelectFork('mainnet', 19477376);
+    super.setUp();
   }
 
   function test_e2e() public {
@@ -120,8 +127,9 @@ contract ProtocolV3TestE2ETestAllMainnet is ProtocolV3TestBase {
 }
 
 contract ProtocolV3TestOptimismSnapshot is ProtocolV3TestBase {
-  function setUp() public {
+  function setUp() public override {
     vm.createSelectFork('optimism', 117408311);
+    super.setUp();
   }
 
   function test_snapshot() public {

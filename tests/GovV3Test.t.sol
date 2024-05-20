@@ -22,8 +22,10 @@ contract GovernanceV3Test is ProtocolV3TestBase {
 
   PayloadWithEmit payload;
 
-  function setUp() public {
+  function setUp() public override {
     vm.createSelectFork('mainnet', 18993187);
+    super.setUp();
+
     payload = new PayloadWithEmit();
   }
 

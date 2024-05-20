@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.0;
 
-import 'forge-std/Test.sol';
 import {ProtocolV2TestBase, ReserveConfig} from '../src/ProtocolV2TestBase.sol';
 import {AaveV2Ethereum, AaveV2EthereumAssets} from 'aave-address-book/AaveV2Ethereum.sol';
 import {AaveV2EthereumAMM} from 'aave-address-book/AaveV2EthereumAMM.sol';
@@ -9,8 +8,9 @@ import {IERC20} from 'solidity-utils/contracts/oz-common/interfaces/IERC20.sol';
 import {PayloadWithEmit} from './mocks/PayloadWithEmit.sol';
 
 contract ProtocolV2TestBaseTest is ProtocolV2TestBase {
-  function setUp() public {
+  function setUp() public override {
     vm.createSelectFork('mainnet', 17627440);
+    super.setUp();
   }
 
   // function testSnpashot() public {
@@ -23,8 +23,9 @@ contract ProtocolV2TestBaseTest is ProtocolV2TestBase {
 }
 
 contract ProtocolV2TestE2ETestAsset is ProtocolV2TestBase {
-  function setUp() public {
+  function setUp() public override {
     vm.createSelectFork('mainnet', 18572478);
+    super.setUp();
   }
 
   function test_e2eTestAssetUSDT() public {

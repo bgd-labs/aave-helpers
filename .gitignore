@@ -8,6 +8,7 @@ package-lock.json
 .DS_Store
 
 yarn-error.log
+zkout/
 
 # snapshot artifacts
 reports/

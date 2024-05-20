@@ -683,7 +683,7 @@ library GovV3Helpers {
     PayloadsControllerUtils.Payload[] memory payloads,
     bytes32 ipfsHash,
     address votingPortal
-  ) public pure {
+  ) internal pure {
     string memory payloadsStr;
     for (uint256 i = 0; i < payloads.length; i++) {
       string memory payloadBase = string.concat('&payload[', vm.toString(i), '].');
