@@ -68,16 +68,22 @@ abstract contract SimpleOneToManyAdapterUpdate is BaseAdaptersUpdate {
     override
     returns (ICrossChainReceiver.ReceiverBridgeAdapterConfigInput[] memory)
   {
-    // remove old Receiver bridge adapter
-    ICrossChainReceiver.ReceiverBridgeAdapterConfigInput[]
-      memory bridgeAdaptersToRemove = new ICrossChainReceiver.ReceiverBridgeAdapterConfigInput[](1);
+    if (ADAPTER_TO_REMOVE != address(0)) {
+      // remove old Receiver bridge adapter
+      ICrossChainReceiver.ReceiverBridgeAdapterConfigInput[]
+        memory bridgeAdaptersToRemove = new ICrossChainReceiver.ReceiverBridgeAdapterConfigInput[](
+          1
+        );
 
-    bridgeAdaptersToRemove[0] = ICrossChainReceiver.ReceiverBridgeAdapterConfigInput({
-      bridgeAdapter: ADAPTER_TO_REMOVE,
-      chainIds: getChainsToReceive()
-    });
+      bridgeAdaptersToRemove[0] = ICrossChainReceiver.ReceiverBridgeAdapterConfigInput({
+        bridgeAdapter: ADAPTER_TO_REMOVE,
+        chainIds: getChainsToReceive()
+      });
 
-    return bridgeAdaptersToRemove;
+      return bridgeAdaptersToRemove;
+    } else {
+      return new ICrossChainReceiver.ReceiverBridgeAdapterConfigInput[](0);
+    }
   }
 
   /// @inheritdoc IBaseForwarderAdaptersUpdate
@@ -88,15 +94,19 @@ abstract contract SimpleOneToManyAdapterUpdate is BaseAdaptersUpdate {
     override
     returns (ICrossChainForwarder.BridgeAdapterToDisable[] memory)
   {
-    ICrossChainForwarder.BridgeAdapterToDisable[]
-      memory forwarderAdaptersToRemove = new ICrossChainForwarder.BridgeAdapterToDisable[](1);
+    if (ADAPTER_TO_REMOVE != address(0)) {
+      ICrossChainForwarder.BridgeAdapterToDisable[]
+        memory forwarderAdaptersToRemove = new ICrossChainForwarder.BridgeAdapterToDisable[](1);
 
-    forwarderAdaptersToRemove[0] = ICrossChainForwarder.BridgeAdapterToDisable({
-      bridgeAdapter: ADAPTER_TO_REMOVE,
-      chainIds: getChainsToSend()
-    });
+      forwarderAdaptersToRemove[0] = ICrossChainForwarder.BridgeAdapterToDisable({
+        bridgeAdapter: ADAPTER_TO_REMOVE,
+        chainIds: getChainsToSend()
+      });
 
-    return forwarderAdaptersToRemove;
+      return forwarderAdaptersToRemove;
+    } else {
+      return new ICrossChainForwarder.BridgeAdapterToDisable[](0);
+    }
   }
 
   /// @inheritdoc IBaseReceiverAdaptersUpdate
@@ -107,15 +117,19 @@ abstract contract SimpleOneToManyAdapterUpdate is BaseAdaptersUpdate {
     override
     returns (ICrossChainReceiver.ReceiverBridgeAdapterConfigInput[] memory)
   {
-    ICrossChainReceiver.ReceiverBridgeAdapterConfigInput[]
-      memory bridgeAdapterConfig = new ICrossChainReceiver.ReceiverBridgeAdapterConfigInput[](1);
+    if (NEW_ADAPTER != address(0)) {
+      ICrossChainReceiver.ReceiverBridgeAdapterConfigInput[]
+        memory bridgeAdapterConfig = new ICrossChainReceiver.ReceiverBridgeAdapterConfigInput[](1);
 
-    bridgeAdapterConfig[0] = ICrossChainReceiver.ReceiverBridgeAdapterConfigInput({
-      bridgeAdapter: NEW_ADAPTER,
-      chainIds: getChainsToReceive()
-    });
+      bridgeAdapterConfig[0] = ICrossChainReceiver.ReceiverBridgeAdapterConfigInput({
+        bridgeAdapter: NEW_ADAPTER,
+        chainIds: getChainsToReceive()
+      });
 
-    return bridgeAdapterConfig;
+      return bridgeAdapterConfig;
+    } else {
+      return new ICrossChainReceiver.ReceiverBridgeAdapterConfigInput[](0);
+    }
   }
 
   /// @inheritdoc IBaseForwarderAdaptersUpdate
