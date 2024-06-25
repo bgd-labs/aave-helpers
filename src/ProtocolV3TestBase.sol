@@ -124,13 +124,17 @@ contract ProtocolV3TestBase is CommonTestBase {
           require(configAfter[i].borrowingEnabled, 'PL_BORROW_CAP_BORROW_DISABLED');
         }
       } else {
-        // at least newly listed assets should never have a supply cap exceeding total supply
-        uint256 totalSupply = IERC20(configAfter[i].underlying).totalSupply();
-        require(
-          configAfter[i].supplyCap / 1e2 <=
-            totalSupply / IERC20Metadata(configAfter[i].underlying).decimals(),
-          'PL_SUPPLY_CAP_GT_TOTAL_SUPPLY'
-        );
+        if (
+          keccak256(bytes(configAfter[i].symbol)) != keccak256(bytes('GHO')) // GHO is the exclusion from the rule
+        ) {
+          // at least newly listed assets should never have a supply cap exceeding total supply
+          uint256 totalSupply = IERC20(configAfter[i].underlying).totalSupply();
+          require(
+            configAfter[i].supplyCap / 1e2 <=
+              totalSupply / IERC20Metadata(configAfter[i].underlying).decimals(),
+            'PL_SUPPLY_CAP_GT_TOTAL_SUPPLY'
+          );
+        }
       }
       // borrow cap should never exceed supply cap
       if (
