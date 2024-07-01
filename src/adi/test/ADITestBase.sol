@@ -7,6 +7,7 @@ import {ICrossChainReceiver, ICrossChainForwarder} from 'aave-address-book/commo
 import {ChainIds, ChainHelpers} from '../../ChainIds.sol';
 import {GovV3Helpers} from '../../GovV3Helpers.sol';
 import {IBaseAdaptersUpdate} from '../interfaces/IBaseAdaptersUpdate.sol';
+import {ProxyHelpers} from '../../ProxyHelpers.sol';
 
 import {GovernanceV3Ethereum} from 'aave-address-book/GovernanceV3Ethereum.sol';
 import {GovernanceV3Polygon} from 'aave-address-book/GovernanceV3Polygon.sol';
@@ -40,6 +41,7 @@ contract ADITestBase is Test {
   }
 
   struct CCCConfig {
+    address crossChainControllerImpl;
     ReceiverConfigByChain[] receiverConfigs;
     ReceiverAdaptersByChain[] receiverAdaptersConfig;
     ForwarderAdaptersByChain[] forwarderAdaptersConfig;
@@ -128,7 +130,7 @@ contract ADITestBase is Test {
       memory forwardersToEnable = IBaseAdaptersUpdate(payload).getForwarderBridgeAdaptersToEnable();
     if (forwardersToEnable.length != 0) {
       _testCorrectForwarderAdaptersConfiguration(payload, crossChainController, forwardersToEnable);
-      _testDestinationAdapterIsRegistered(payload, crossChainController, forwardersToEnable);
+      _testDestinationAdapterIsRegistered(forwardersToEnable);
     }
     ICrossChainForwarder.BridgeAdapterToDisable[] memory forwardersToRemove = IBaseAdaptersUpdate(
       payload
@@ -148,8 +150,6 @@ contract ADITestBase is Test {
   }
 
   function _testDestinationAdapterIsRegistered(
-    address payload,
-    address crossChainController,
     ICrossChainForwarder.ForwarderBridgeAdapterConfigInput[] memory forwardersToEnable
   ) internal {
     DestinationPayload[] memory destinationPayloads = getDestinationPayloadsByChain();
@@ -382,7 +382,7 @@ contract ADITestBase is Test {
     string memory reportName,
     address crossChainController
   ) public returns (CCCConfig memory) {
-    return createConfigurationSnapshot(reportName, crossChainController, true, true, true);
+    return createConfigurationSnapshot(reportName, crossChainController, true, true, true, true);
   }
 
   function createConfigurationSnapshot(
@@ -390,21 +390,32 @@ contract ADITestBase is Test {
     address crossChainController,
     bool receiverConfigs,
     bool receiverAdapterConfigs,
-    bool forwarderAdapterConfigs
+    bool forwarderAdapterConfigs,
+    bool cccImplUpdate
   ) public returns (CCCConfig memory) {
     string memory path = string(abi.encodePacked('./reports/', reportName, '.json'));
     // overwrite with empty json to later be extended
     vm.writeFile(
       path,
-      '{ "receiverConfigsByChain": {}, "receiverAdaptersByChain": {}, "forwarderAdaptersByChain": {}}'
+      '{ "cccImplementation": {}, "receiverConfigsByChain": {}, "receiverAdaptersByChain": {}, "forwarderAdaptersByChain": {}}'
     );
     vm.serializeUint('root', 'chainId', block.chainid);
     CCCConfig memory config = _getCCCConfig(crossChainController);
     if (receiverConfigs) _writeReceiverConfigs(path, config);
     if (receiverAdapterConfigs) _writeReceiverAdapters(path, config);
     if (forwarderAdapterConfigs) _writeForwarderAdatpers(path, config);
+    if (cccImplUpdate) _writeCCCImplUpdate(path, config);
 
     return config;
+  }
+
+  function _writeCCCImplUpdate(string memory path, CCCConfig memory config) internal {
+    string memory output = vm.serializeAddress(
+      'root',
+      'crossChainControllerImpl',
+      config.crossChainControllerImpl
+    );
+    vm.writeJson(output, path);
   }
 
   function _writeForwarderAdatpers(string memory path, CCCConfig memory config) internal {
@@ -507,6 +518,9 @@ contract ADITestBase is Test {
   function _getCCCConfig(address ccc) internal view returns (CCCConfig memory) {
     CCCConfig memory config;
 
+    // get crossChainController implementation
+    config.crossChainControllerImpl = ProxyHelpers
+      .getInitializableAdminUpgradeabilityProxyImplementation(vm, ccc);
     // get supported networks
     uint256[] memory receiverSupportedChains = ICrossChainReceiver(ccc).getSupportedChains();
     ReceiverConfigByChain[] memory receiverConfigs = new ReceiverConfigByChain[](
