@@ -7,3 +7,6 @@ ds-test/=lib/forge-std/lib/ds-test/src/
 forge-std/=lib/forge-std/src/
 solidity-utils/=lib/solidity-utils/src/
 governance-crosschain-bridges/=lib/governance-crosschain-bridges/
+composable-cow/=lib/composable-cow/src/
+cowprotocol/=lib/composable-cow/lib/cowprotocol/src/contracts/
+safe/=lib/composable-cow/lib/safe/contracts/
