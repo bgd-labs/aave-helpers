@@ -22,3 +22,11 @@ contract DeplyAaveSwapper is Script {
     vm.stopBroadcast();
   }
 }
+
+contract DeployAaveSwapperNoPROXY is Script {
+  function run() external {
+    vm.startBroadcast();
+    new AaveSwapper();
+    vm.stopBroadcast();
+  }
+}

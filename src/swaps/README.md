@@ -19,6 +19,18 @@ The owner will be the DAO (however, ownership can be transferred) and the guardi
 DAO to more easily cancel swaps without relying on governance. AaveSwapper can hold funds and swap for other tokens
 and keep them in case the DAO chooses so. AaveSwapper can only withdraw tokens to the Collector contract.
 
+## Before Submitting Swap Payload
+
+Check out the sample `script` under [src/swaps/scripts/TestSwap.s.sol](https://github.com/bgd-labs/aave-helpers/tree/master/src/swaps/scripts/TestSwap.s.sol) in order to live test the swap that you are wanting to execute. A swapper instance can be deployed and used with the owner/guardian of your choice in order to bypass the `onlyOwner` check on the existing deployment.
+
+TokenLogic has a deployed instance with address []() that they use to live test new swaps.
+
+This is to validate that the orders will succeed and there are no broken bad parameters being passed (for example, addresses for the oracles). As the live test amounts are likely to be quite small, the slippage needs to be considerable for the order to be picked up. Orders of less than $100 in value probably don't make sense to do, so ideally, a swap is above that amount and with considerable slippage to account for gas costs. Something like 20% (this is not what will likely be, but it's a heuristic).
+
+After a swap is submitted, checking the logs will give you the Swap Milkman address that was created to escrow the funds until the trade is settled. With that address, you can go to `https://explorer.cow.fi/address/<SWAP-MILKMAN-ADDRESS>` and see if orders are being picked up. If you don't see the orders, then likely there's an error and you should reach out to the CoW Swap team to validate what the issue is. The most common case for an order not being picked up is that the specified slippage doesn't cover the cost of the transaction.
+
+Please remember this really big slippage is only for testing purposes and the submitted payload should follow the slippage heuristics detailed below in the Methods description.
+
 ### Methods
 
 ```
