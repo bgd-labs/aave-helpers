@@ -2,17 +2,19 @@
 pragma solidity >=0.7.5 <0.9.0;
 
 import 'forge-std/Test.sol';
-import {IAaveOracle, IPool, IPoolAddressesProvider, IPoolDataProvider, IDefaultInterestRateStrategy, DataTypes, IPoolConfigurator} from 'aave-address-book/AaveV3.sol';
+import {IAaveOracle, IPool, IPoolAddressesProvider, IPoolDataProvider, IReserveInterestRateStrategy, DataTypes, IPoolConfigurator} from 'aave-address-book/AaveV3.sol';
 import {IERC20} from 'solidity-utils/contracts/oz-common/interfaces/IERC20.sol';
 import {IERC20Metadata} from 'solidity-utils/contracts/oz-common/interfaces/IERC20Metadata.sol';
 import {SafeERC20} from 'solidity-utils/contracts/oz-common/SafeERC20.sol';
-import {ReserveConfiguration} from 'aave-v3-core/contracts/protocol/libraries/configuration/ReserveConfiguration.sol';
+import {ReserveConfiguration} from 'aave-v3-origin/core/contracts/protocol/libraries/configuration/ReserveConfiguration.sol';
+import {IDefaultInterestRateStrategyV2} from 'aave-v3-origin/core/contracts/interfaces/IDefaultInterestRateStrategyV2.sol';
 import {AaveV3EthereumAssets} from 'aave-address-book/AaveV3Ethereum.sol';
 import {IInitializableAdminUpgradeabilityProxy} from './interfaces/IInitializableAdminUpgradeabilityProxy.sol';
 import {ExtendedAggregatorV2V3Interface} from './interfaces/ExtendedAggregatorV2V3Interface.sol';
 import {ProxyHelpers} from './ProxyHelpers.sol';
 import {CommonTestBase, ReserveTokens} from './CommonTestBase.sol';
-import {IDefaultInterestRateStrategyV2} from './dependencies/IDefaultInterestRateStrategyV2.sol';
+import {ILegacyDefaultInterestRateStrategy} from './dependencies/ILegacyDefaultInterestRateStrategy.sol';
+import {WeiConverter} from './DecimalsHelper.sol';
 
 struct ReserveConfig {
   string symbol;
@@ -40,6 +42,9 @@ struct ReserveConfig {
   uint256 borrowCap;
   uint256 debtCeiling;
   uint256 eModeCategory;
+  bool virtualAccActive;
+  string virtualBalance;
+  string aTokenUnderlyingBalance;
 }
 
 struct LocalVars {
@@ -449,7 +454,7 @@ contract ProtocolV3TestBase is CommonTestBase {
       IDefaultInterestRateStrategyV2 strategyV2 = IDefaultInterestRateStrategyV2(
         configs[i].interestRateStrategy
       );
-      IDefaultInterestRateStrategy strategyV1 = IDefaultInterestRateStrategy(
+      ILegacyDefaultInterestRateStrategy strategyV1 = ILegacyDefaultInterestRateStrategy(
         configs[i].interestRateStrategy
       );
       address asset = configs[i].underlying;
@@ -546,7 +551,7 @@ contract ProtocolV3TestBase is CommonTestBase {
       ExtendedAggregatorV2V3Interface assetOracle = ExtendedAggregatorV2V3Interface(
         oracle.getSourceOfAsset(config.underlying)
       );
-      DataTypes.ReserveData memory reserveData = pool.getReserveData(config.underlying);
+      DataTypes.ReserveDataLegacy memory reserveData = pool.getReserveData(config.underlying);
 
       string memory key = vm.toString(config.underlying);
       vm.serializeJson(key, '{}');
@@ -635,6 +640,11 @@ contract ProtocolV3TestBase is CommonTestBase {
           } catch {}
         }
       }
+
+      vm.serializeBool(key, 'virtual accounting active', config.virtualAccActive);
+      vm.serializeString(key, 'virtual balance', config.virtualBalance);
+      vm.serializeString(key, 'aToken underlying balance', config.aTokenUnderlyingBalance);
+
       string memory out = vm.serializeUint(
         key,
         'oracleLatestAnswer',
@@ -758,7 +768,30 @@ contract ProtocolV3TestBase is CommonTestBase {
 
     localConfig.isFlashloanable = configuration.getFlashLoanEnabled();
 
+    // 3.1 configurations
+    try this.getIsVirtualAccActive(configuration) returns (bool active) {
+      localConfig.virtualAccActive = active;
+      if (active) {
+        localConfig.virtualBalance = WeiConverter.weiToDecimal(
+          pool.getVirtualUnderlyingBalance(reserve.tokenAddress),
+          localConfig.decimals
+        );
+        localConfig.aTokenUnderlyingBalance = WeiConverter.weiToDecimal(
+          IERC20(reserve.tokenAddress).balanceOf(localConfig.aToken),
+          localConfig.decimals
+        );
+      } else {
+        localConfig.virtualBalance = '/';
+      }
+    } catch (bytes memory) {}
+
     return localConfig;
+  }
+
+  function getIsVirtualAccActive(
+    DataTypes.ReserveConfigurationMap memory configuration
+  ) external pure returns (bool) {
+    return configuration.getIsVirtualAccActive();
   }
 
   // TODO This should probably be simplified with assembly, too much boilerplate
@@ -789,7 +822,10 @@ contract ProtocolV3TestBase is CommonTestBase {
         supplyCap: config.supplyCap,
         borrowCap: config.borrowCap,
         debtCeiling: config.debtCeiling,
-        eModeCategory: config.eModeCategory
+        eModeCategory: config.eModeCategory,
+        virtualAccActive: config.virtualAccActive,
+        virtualBalance: config.virtualBalance,
+        aTokenUnderlyingBalance: config.aTokenUnderlyingBalance
       });
   }
 
@@ -846,6 +882,8 @@ contract ProtocolV3TestBase is CommonTestBase {
     console.log('Is siloed ', (config.isSiloed) ? 'Yes' : 'No');
     console.log('Is borrowable in isolation ', (config.isBorrowableInIsolation) ? 'Yes' : 'No');
     console.log('Is flashloanable ', (config.isFlashloanable) ? 'Yes' : 'No');
+    console.log('Is virtual accounting active ', (config.virtualAccActive) ? 'Yes' : 'No');
+    console.log('Virtual balance ', config.virtualBalance);
     console.log('-----');
     console.log('-----');
   }
@@ -942,7 +980,7 @@ contract ProtocolV3TestBase is CommonTestBase {
     address expectedStrategy,
     InterestStrategyValues memory expectedStrategyValues
   ) internal view {
-    IDefaultInterestRateStrategy strategy = IDefaultInterestRateStrategy(
+    ILegacyDefaultInterestRateStrategy strategy = ILegacyDefaultInterestRateStrategy(
       interestRateStrategyAddress
     );
 
