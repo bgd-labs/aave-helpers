@@ -43,7 +43,7 @@ contract ProtocolV3TestBase is RawProtocolV3TestBase, CommonTestBase {
 
   SnapshotHelpersV3 public snapshotHelper;
 
-  function setUp() virtual public {
+  function setUp() public virtual {
     snapshotHelper = new SnapshotHelpersV3();
     vm.makePersistent(address(snapshotHelper));
     vm.allowCheatcodes(address(snapshotHelper));
@@ -147,15 +147,18 @@ contract ProtocolV3TestBase is RawProtocolV3TestBase, CommonTestBase {
     bool eModeConigs,
     bool poolConfigs
   ) public override returns (ReserveConfig[] memory) {
+    ReserveConfig[] memory configs = _getReservesConfigs(pool);
     _switchOffZkVm();
-    return snapshotHelper.createConfigurationSnapshot(
-      reportName,
-      pool,
-      reserveConfigs,
-      strategyConfigs,
-      eModeConigs,
-      poolConfigs
-    );
+    return
+      snapshotHelper.createConfigurationSnapshot(
+        reportName,
+        pool,
+        reserveConfigs,
+        strategyConfigs,
+        eModeConigs,
+        poolConfigs,
+        configs
+      );
   }
 
   /**
@@ -210,13 +213,8 @@ contract ProtocolV3TestBase is RawProtocolV3TestBase, CommonTestBase {
       uint256 snapshot = vm.snapshot();
       // test variable borrowing
       if (testAssetConfig.borrowingEnabled) {
-        _e2eTestBorrowRepay(pool, collateralSupplier, testAssetConfig, testAssetAmount, false);
+        _e2eTestBorrowRepay(pool, collateralSupplier, testAssetConfig, testAssetAmount);
         vm.revertTo(snapshot);
-        // test stable borrowing
-        if (testAssetConfig.stableBorrowRateEnabled) {
-          _e2eTestBorrowRepay(pool, collateralSupplier, testAssetConfig, testAssetAmount, true);
-          vm.revertTo(snapshot);
-        }
       }
     } else {
       _deposit(collateralConfig, pool, collateralSupplier, collateralAssetAmount);
@@ -235,13 +233,8 @@ contract ProtocolV3TestBase is RawProtocolV3TestBase, CommonTestBase {
           console.log('Skip Borrowing: %s, borrow cap fully utilized', testAssetConfig.symbol);
           return;
         }
-        _e2eTestBorrowRepay(pool, collateralSupplier, testAssetConfig, testAssetAmount, false);
+        _e2eTestBorrowRepay(pool, collateralSupplier, testAssetConfig, testAssetAmount);
         vm.revertTo(snapshot);
-        // test stable borrowing
-        if (testAssetConfig.stableBorrowRateEnabled) {
-          _e2eTestBorrowRepay(pool, collateralSupplier, testAssetConfig, testAssetAmount, true);
-          vm.revertTo(snapshot);
-        }
       }
     }
   }
@@ -268,24 +261,15 @@ contract ProtocolV3TestBase is RawProtocolV3TestBase, CommonTestBase {
     IPool pool,
     address borrower,
     ReserveConfig memory testAssetConfig,
-    uint256 amount,
-    bool stable
+    uint256 amount
   ) internal {
-    this._borrow(testAssetConfig, pool, borrower, amount, stable);
-    // switching back and forth between rate modes should work
-    if (testAssetConfig.stableBorrowRateEnabled) {
-      vm.startPrank(borrower);
-      pool.swapBorrowRateMode(testAssetConfig.underlying, stable ? 1 : 2);
-      pool.swapBorrowRateMode(testAssetConfig.underlying, stable ? 2 : 1);
-    } else {
-      vm.expectRevert();
-      pool.swapBorrowRateMode(testAssetConfig.underlying, stable ? 1 : 2);
-    }
-    _repay(testAssetConfig, pool, borrower, amount, stable);
+    this._borrow(testAssetConfig, pool, borrower, amount);
+
+    _repay(testAssetConfig, pool, borrower, amount);
   }
 
   /**
-   * @dev returns a "good" collateral in the list that cannot be borrowed in stable mode
+   * @dev returns a "good" collateral in the list
    */
   function _getGoodCollateral(
     ReserveConfig[] memory configs
@@ -296,8 +280,6 @@ contract ProtocolV3TestBase is RawProtocolV3TestBase, CommonTestBase {
         _includeInE2e(configs[i]) &&
         // usable as collateral
         configs[i].usageAsCollateralEnabled &&
-        // not stable borrowable as this makes testing stable borrowing unnecessary hard to reason about
-        !configs[i].stableBorrowRateEnabled &&
         // not isolated asset as we can only borrow stablecoins against it
         configs[i].debtCeiling == 0
       ) return configs[i];
@@ -345,37 +327,25 @@ contract ProtocolV3TestBase is RawProtocolV3TestBase, CommonTestBase {
     return amountOut;
   }
 
-  function _borrow(
-    ReserveConfig memory config,
-    IPool pool,
-    address user,
-    uint256 amount,
-    bool stable
-  ) external {
+  function _borrow(ReserveConfig memory config, IPool pool, address user, uint256 amount) external {
     vm.startPrank(user);
-    address debtToken = stable ? config.stableDebtToken : config.variableDebtToken;
+    address debtToken = config.variableDebtToken;
     uint256 debtBefore = IERC20(debtToken).balanceOf(user);
-    console.log('BORROW: %s, Amount %s, Stable: %s', config.symbol, amount, stable);
-    pool.borrow(config.underlying, amount, stable ? 1 : 2, 0, user);
+    console.log('BORROW: %s, Amount %s', config.symbol, amount);
+    pool.borrow(config.underlying, amount, 2, 0, user);
     uint256 debtAfter = IERC20(debtToken).balanceOf(user);
     assertApproxEqAbs(debtAfter, debtBefore + amount, 1);
     vm.stopPrank();
   }
 
-  function _repay(
-    ReserveConfig memory config,
-    IPool pool,
-    address user,
-    uint256 amount,
-    bool stable
-  ) internal {
+  function _repay(ReserveConfig memory config, IPool pool, address user, uint256 amount) internal {
     vm.startPrank(user);
-    address debtToken = stable ? config.stableDebtToken : config.variableDebtToken;
+    address debtToken = config.variableDebtToken;
     uint256 debtBefore = IERC20(debtToken).balanceOf(user);
     deal2(config.underlying, user, amount);
     IERC20(config.underlying).forceApprove(address(pool), amount);
     console.log('REPAY: %s, Amount: %s', config.symbol, amount);
-    pool.repay(config.underlying, amount, stable ? 1 : 2, user);
+    pool.repay(config.underlying, amount, 2, user);
     uint256 debtAfter = IERC20(debtToken).balanceOf(user);
     if (amount >= debtBefore) {
       assertEq(debtAfter, 0, '_repay() : ERROR MUST_BE_ZERO');
@@ -391,14 +361,13 @@ contract ProtocolV3TestBase is RawProtocolV3TestBase, CommonTestBase {
     IPool pool
   ) internal override {
     _switchOffZkVm();
-    return snapshotHelper.writeEModeConfigs(
-      path,
-      configs,
-      pool
-    );
+    return snapshotHelper.writeEModeConfigs(path, configs, pool);
   }
 
-  function _writeStrategyConfigs(string memory path, ReserveConfig[] memory configs) internal override {
+  function _writeStrategyConfigs(
+    string memory path,
+    ReserveConfig[] memory configs
+  ) internal override {
     _switchOffZkVm();
     return snapshotHelper.writeStrategyConfigs(path, configs);
   }
@@ -417,65 +386,8 @@ contract ProtocolV3TestBase is RawProtocolV3TestBase, CommonTestBase {
     return snapshotHelper.writePoolConfiguration(path, pool);
   }
 
-  function _getReservesConfigs(IPool pool) internal view override returns (ReserveConfig[] memory) {
-    return snapshotHelper.getReservesConfigs(pool);
-  }
-
-  function _getStructReserveTokens(
-    IPoolDataProvider pdp,
-    address underlyingAddress
-  ) internal view override returns (ReserveTokens memory) {
-    return snapshotHelper.getStructReserveTokens(pdp, underlyingAddress);
-  }
-
-  function _getStructReserveConfig(
-    IPool pool,
-    IPoolDataProvider.TokenData memory reserve
-  ) internal view virtual returns (ReserveConfig memory) {
-    return snapshotHelper.getStructReserveConfig(pool, reserve);
-  }
-
-  function _logReserveConfig(ReserveConfig memory config) internal pure {
-    console.log('Symbol ', config.symbol);
-    console.log('Underlying address ', config.underlying);
-    console.log('AToken address ', config.aToken);
-    console.log('Stable debt token address ', config.stableDebtToken);
-    console.log('Variable debt token address ', config.variableDebtToken);
-    console.log('Decimals ', config.decimals);
-    console.log('LTV ', config.ltv);
-    console.log('Liquidation Threshold ', config.liquidationThreshold);
-    console.log('Liquidation Bonus ', config.liquidationBonus);
-    console.log('Liquidation protocol fee ', config.liquidationProtocolFee);
-    console.log('Reserve Factor ', config.reserveFactor);
-    console.log('Usage as collateral enabled ', (config.usageAsCollateralEnabled) ? 'Yes' : 'No');
-    console.log('Borrowing enabled ', (config.borrowingEnabled) ? 'Yes' : 'No');
-    console.log('Stable borrow rate enabled ', (config.stableBorrowRateEnabled) ? 'Yes' : 'No');
-    console.log('Supply cap ', config.supplyCap);
-    console.log('Borrow cap ', config.borrowCap);
-    console.log('Debt ceiling ', config.debtCeiling);
-    console.log('eMode category ', config.eModeCategory);
-    console.log('Interest rate strategy ', config.interestRateStrategy);
-    console.log('Is active ', (config.isActive) ? 'Yes' : 'No');
-    console.log('Is frozen ', (config.isFrozen) ? 'Yes' : 'No');
-    console.log('Is siloed ', (config.isSiloed) ? 'Yes' : 'No');
-    console.log('Is borrowable in isolation ', (config.isBorrowableInIsolation) ? 'Yes' : 'No');
-    console.log('Is flashloanable ', (config.isFlashloanable) ? 'Yes' : 'No');
-    console.log('Is virtual accounting active ', (config.virtualAccActive) ? 'Yes' : 'No');
-    console.log('Virtual balance ', config.virtualBalance);
-    console.log('-----');
-    console.log('-----');
-  }
-
   function _switchOffZkVm() internal {
-    (bool success, ) = address(vm).call(
-      abi.encodeWithSignature("zkVm(bool)", false)
-    );
+    (bool success, ) = address(vm).call(abi.encodeWithSignature('zkVm(bool)', false));
     require(success, 'ERROR SWITCHING OFF ZKVM');
-  }
-
-  function getIsVirtualAccActive(
-    DataTypes.ReserveConfigurationMap memory configuration
-  ) external pure returns (bool) {
-    return configuration.getIsVirtualAccActive();
   }
 }
