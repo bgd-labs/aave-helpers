@@ -17,6 +17,7 @@ import {AaveV3BNB} from 'aave-address-book/AaveV3BNB.sol';
 import {AaveV3Scroll} from 'aave-address-book/AaveV3Scroll.sol';
 import {AaveV3PolygonZkEvm} from 'aave-address-book/AaveV3PolygonZkEvm.sol';
 import {AaveV3EthereumLido} from 'aave-address-book/AaveV3EthereumLido.sol';
+import {AaveV3EthereumEtherFi} from 'aave-address-book/AaveV3EthereumEtherFi.sol';
 
 contract DeployEth is EthereumScript {
   function run() external broadcast {
@@ -144,6 +145,17 @@ contract DeployLidoEthereum is EthereumScript {
     new CapsPlusRiskSteward(
       AaveV3EthereumLido.AAVE_PROTOCOL_DATA_PROVIDER,
       IAaveV3ConfigEngine(AaveV3EthereumLido.CONFIG_ENGINE),
+      0x47c71dFEB55Ebaa431Ae3fbF99Ea50e0D3d30fA8,
+      2 days
+    );
+  }
+}
+
+contract DeployEtherfiEthereum is EthereumScript {
+  function run() external broadcast {
+    new CapsPlusRiskSteward(
+      AaveV3EthereumEtherFi.AAVE_PROTOCOL_DATA_PROVIDER,
+      IAaveV3ConfigEngine(AaveV3EthereumEtherFi.CONFIG_ENGINE),
       0x47c71dFEB55Ebaa431Ae3fbF99Ea50e0D3d30fA8,
       2 days
     );
