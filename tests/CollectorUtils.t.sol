@@ -95,6 +95,37 @@ contract CollectorUtilsTest is Test {
     );
   }
 
+  function testStream(uint128 amount) public {
+    uint256 underlyingBalanceOfCollectorBefore = UNDERLYING.balanceOf(address(COLLECTOR));
+    amount = uint128(bound(amount, 1 days, underlyingBalanceOfCollectorBefore)); // otherwise actual amount is rounded to 0
+    uint256 underlyingBalanceOfReceiverBefore = UNDERLYING.balanceOf(address(testReceiver));
+
+    uint256 nextStreamId = AaveV3Ethereum.COLLECTOR.getNextStreamId();
+    vm.expectRevert();
+    AaveV3Ethereum.COLLECTOR.getStream(nextStreamId);
+
+    uint256 actualAmount = CollectorUtils.stream(
+      COLLECTOR,
+      CollectorUtils.CreateStreamInput({
+	underlying: address(UNDERLYING),
+        receiver: testReceiver,
+        amount: amount,
+        start: block.timestamp,
+        duration: 1 days
+      })
+    );
+
+    vm.warp(block.timestamp + 2 days);
+    vm.prank(testReceiver);
+    COLLECTOR.withdrawFromStream(nextStreamId, actualAmount);
+
+    uint256 underlyingBalanceOfCollectorAfter = UNDERLYING.balanceOf(address(COLLECTOR));
+    uint256 underlyingBalanceOfReceiverAfter = UNDERLYING.balanceOf(address(testReceiver));
+
+    assertEq(underlyingBalanceOfCollectorAfter, underlyingBalanceOfCollectorBefore - actualAmount);
+    assertEq(underlyingBalanceOfReceiverAfter, underlyingBalanceOfReceiverBefore + actualAmount);
+  }
+
   function testSwap(
     address milkman,
     address priceChecker,

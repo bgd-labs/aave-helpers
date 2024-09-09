@@ -134,7 +134,7 @@ library CollectorUtils {
 
     uint256 actualAmount = (input.amount / input.duration) * input.duration;
     collector.createStream(
-      input.underlying,
+      input.receiver,
       actualAmount,
       input.underlying,
       input.start,
