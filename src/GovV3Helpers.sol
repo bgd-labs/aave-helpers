@@ -5,6 +5,7 @@ import {Vm} from 'forge-std/Vm.sol';
 import {ChainIds, ChainHelpers} from 'solidity-utils/contracts/utils/ChainHelpers.sol';
 import {IpfsUtils} from './IpfsUtils.sol';
 import {console2} from 'forge-std/console2.sol';
+import {ProxyHelpers} from 'aave-v3-origin-tests/utils/ProxyHelpers.sol';
 import {PayloadsControllerUtils, IGovernancePowerStrategy, IPayloadsControllerCore, IGovernanceCore} from 'aave-address-book/GovernanceV3.sol';
 import {IVotingMachineWithProofs} from 'aave-address-book/governance-v3/IVotingMachineWithProofs.sol';
 import {IVotingPortal} from 'aave-address-book/governance-v3/IVotingPortal.sol';
@@ -24,7 +25,6 @@ import {MiscEthereum} from 'aave-address-book/MiscEthereum.sol';
 import {Address} from 'solidity-utils/contracts/oz-common/Address.sol';
 import {Create2Utils} from 'solidity-utils/contracts/utils/ScriptUtils.sol';
 import {StorageHelpers} from './StorageHelpers.sol';
-import {ProxyHelpers} from './ProxyHelpers.sol';
 import {Create2UtilsZkSync} from 'solidity-utils/../zksync/src/contracts/utils/ScriptUtilsZkSync.sol';
 
 interface IGovernance_V2_5 {
@@ -232,10 +232,19 @@ library GovV3Helpers {
     return buildAction(payloadAddress);
   }
 
-  function _getBytecodeHashFromArtifacts(Vm vm, string memory contractName) private view returns (bytes32 bytecodeHash) {
-    string memory artifactPath = string.concat('zkout/', contractName, '.sol/', contractName, '.json');
+  function _getBytecodeHashFromArtifacts(
+    Vm vm,
+    string memory contractName
+  ) private view returns (bytes32 bytecodeHash) {
+    string memory artifactPath = string.concat(
+      'zkout/',
+      contractName,
+      '.sol/',
+      contractName,
+      '.json'
+    );
     string memory artifact = vm.readFile(artifactPath);
-    bytecodeHash = vm.parseJsonBytes32(artifact, ".hash");
+    bytecodeHash = vm.parseJsonBytes32(artifact, '.hash');
 
     require(bytecodeHash != (bytes32(0)), 'Unable to fetch bytecodeHash from the zkout artifacts');
     return bytecodeHash;
@@ -890,7 +899,10 @@ library GovV3Helpers {
     IPayloadsControllerCore.ExecutionAction[] memory actions
   ) private view returns (uint40, IPayloadsControllerCore.Payload memory, bool) {
     uint40 count = payloadsController.getPayloadsCount();
-    for (uint40 payloadId = count; payloadId > 0; payloadId--) {
+    uint40 maxPayloadCheck = 20;
+    uint40 payloadIdLowerBound = count < maxPayloadCheck ? 0 : count - maxPayloadCheck; // only validate across last 20 payloadIds
+
+    for (uint40 payloadId = count; payloadId > payloadIdLowerBound; payloadId--) {
       IPayloadsControllerCore.Payload memory payload = payloadsController.getPayloadById(
         payloadId - 1
       );
