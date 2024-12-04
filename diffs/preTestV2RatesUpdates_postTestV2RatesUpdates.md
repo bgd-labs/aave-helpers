@@ -11,7 +11,7 @@
 | stableRateSlope1 | 2 % | 69 % |
 | optimalUsageRatio | 90 % | 69 % |
 | maxExcessUsageRatio | 10 % | 31 % |
-| interestRate | ![before](/.assets/23e67c7d46dd80f36d580b243c5716c84080a34f.svg) | ![after](/.assets/64fd6acec636adec0e975e8031f8e3f7fb87bb7d.svg) |
+| interestRate | ![before](https://dash.onaave.com/api/static?variableRateSlope1=65000000000000000000000000&variableRateSlope2=600000000000000000000000000&optimalUsageRatio=900000000000000000000000000&baseVariableBorrowRate=0&maxVariableBorrowRate=undefined) | ![after](https://dash.onaave.com/api/static?variableRateSlope1=420000000000000000000000000&variableRateSlope2=600000000000000000000000000&optimalUsageRatio=690000000000000000000000000&baseVariableBorrowRate=0&maxVariableBorrowRate=undefined) |
 
 ## Raw diff
 
