@@ -12,8 +12,8 @@ contract DeployAaveSwapper is Script {
   function run() external {
     vm.startBroadcast();
 
-    address aaveSwapper = address(new AaveSwapper());
-    ITransparentProxyFactory(MiscEthereum.TRANSPARENT_PROXY_FACTORY).create(
+    address aaveSwapper = address(new AaveSwapper(0xfdaFc9d1902f4e0b84f65F49f244b32b31013b74));
+    TransparentProxyFactory(MiscEthereum.TRANSPARENT_PROXY_FACTORY).create(
       aaveSwapper,
       ProxyAdmin(MiscEthereum.PROXY_ADMIN),
       abi.encodeWithSelector(AaveSwapper.initialize.selector)

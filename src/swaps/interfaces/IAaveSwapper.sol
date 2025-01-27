@@ -2,12 +2,45 @@
 
 pragma solidity ^0.8.0;
 
+import {IERC20} from 'solidity-utils/contracts/oz-common/interfaces/IERC20.sol';
+
 interface IAaveSwapper {
+  struct TWAPData {
+    IERC20 sellToken;
+    IERC20 buyToken;
+    address receiver;
+    uint256 partSellAmount; // amount of sellToken to sell in each part
+    uint256 minPartLimit; // max price to pay for a unit of buyToken denominated in sellToken
+    uint256 t0;
+    uint256 n;
+    uint256 t;
+    uint256 span;
+    bytes32 appData;
+  }
+
+  event LimitSwapRequested(
+    address milkman,
+    address indexed fromToken,
+    address indexed toToken,
+    uint256 amount,
+    address indexed recipient,
+    uint256 minAmountOut
+  );
+  
   /// @dev Emitted when a swap is canceled
   /// @param fromToken The token to swap from
   /// @param toToken The token to swap to
   /// @param amount Amount of fromToken to swap
   event SwapCanceled(address indexed fromToken, address indexed toToken, uint256 amount);
+
+  event TWAPSwapCanceled(address indexed fromToken, address indexed toToken, uint256 amount);
+  event TWAPSwapRequested(
+    address handler,
+    address indexed fromToken,
+    address indexed toToken,
+    address recipient,
+    uint256 totalAmount
+  );
 
   /// @dev Emitted when a swap is submitted to Cow Swap
   /// @param milkman Address of Milkman (Cow Swap) contract
