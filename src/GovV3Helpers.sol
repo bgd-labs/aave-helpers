@@ -26,6 +26,7 @@ import {MiscEthereum} from 'aave-address-book/MiscEthereum.sol';
 import {Create2Utils} from 'solidity-utils/contracts/utils/ScriptUtils.sol';
 import {StorageHelpers} from './StorageHelpers.sol';
 import {Create2UtilsZkSync} from 'solidity-utils/../zksync/src/contracts/utils/ScriptUtilsZkSync.sol';
+import {ITransparentProxyFactory, ProxyAdmin} from 'solidity-utils/contracts/transparent-proxy/interfaces/ITransparentProxyFactory.sol';
 
 interface IGovernance_V2_5 {
   /**
@@ -79,6 +80,8 @@ library GovV3Helpers {
     bytes blockHeaderRLP;
     bytes accountStateProofRLP;
   }
+
+  bytes32 constant private SALT = 'v1';
 
   function ipfsHashFile(Vm vm, string memory filePath) internal returns (bytes32) {
     return IpfsUtils.ipfsHashFile(vm, filePath, false);
@@ -158,22 +161,22 @@ library GovV3Helpers {
     IVotingMachineWithProofs(machine).submitVote(proposalId, support, votingBalanceProofs);
   }
 
-  // Deploys using the unsanitized bytecodeHash we get via `type(Contract).creationCode`
-  function deployDeterministicZkSync(bytes memory bytecodeHash) internal returns (address) {
-    return Create2UtilsZkSync.create2Deploy('v1', bytecodeHash);
+  // for zksync creation code check Create2UtilsZkSync documentation
+  function deployDeterministicZkSync(bytes memory creationCode) internal returns (address) {
+    return Create2UtilsZkSync.create2Deploy(SALT, creationCode);
   }
 
-  // Deploys using the unsanitized bytecodeHash we get via `type(Contract).creationCode`
+  // for zksync creation code check Create2UtilsZkSync documentation
   function deployDeterministicZkSync(
-    bytes memory bytecodeHash,
+    bytes memory creationCode,
     bytes memory arguments
   ) internal returns (address) {
-    return Create2UtilsZkSync.create2Deploy('v1', bytecodeHash, arguments);
+    return Create2UtilsZkSync.create2Deploy(SALT, creationCode, arguments);
   }
 
   // Deploys using the sanitized bytecodeHash
   function deployDeterministicZkSync(bytes32 bytecodeHash) internal returns (address) {
-    return Create2UtilsZkSync.create2Deploy('v1', bytecodeHash);
+    return Create2UtilsZkSync.create2Deploy(SALT, bytecodeHash);
   }
 
   // Deploys using the sanitized bytecodeHash
@@ -181,55 +184,105 @@ library GovV3Helpers {
     bytes32 bytecodeHash,
     bytes memory arguments
   ) internal returns (address) {
-    return Create2UtilsZkSync.create2Deploy('v1', bytecodeHash, arguments);
+    return Create2UtilsZkSync.create2Deploy(SALT, bytecodeHash, arguments);
   }
 
   /**
    * Deploys a contract with a constant salt
    */
   function deployDeterministic(bytes memory bytecode) internal returns (address) {
-    return Create2Utils.create2Deploy('v1', bytecode);
+    return Create2Utils.create2Deploy(SALT, bytecode);
   }
 
   function deployDeterministic(
     bytes memory bytecode,
     bytes memory arguments
   ) internal returns (address) {
-    return Create2Utils.create2Deploy('v1', bytecode, arguments);
+    return Create2Utils.create2Deploy(SALT, bytecode, arguments);
   }
 
   /**
    * Predicts the payload based on a constant salt
    */
   function predictDeterministicAddress(bytes memory bytecode) internal pure returns (address) {
-    return Create2Utils.computeCreate2Address('v1', bytecode);
+    return Create2Utils.computeCreate2Address(SALT, bytecode);
   }
 
   function predictDeterministicAddress(
     bytes memory bytecode,
     bytes memory arguments
   ) internal pure returns (address) {
-    return Create2Utils.computeCreate2Address('v1', bytecode, arguments);
+    return Create2Utils.computeCreate2Address(SALT, bytecode, arguments);
+  }
+
+  // for zksync creation code check Create2UtilsZkSync documentation
+  function predictDeterministicAddressZkSync(
+    bytes memory creationCode
+  ) internal pure returns (address) {
+    return Create2UtilsZkSync.computeCreate2Address(SALT, creationCode);
+  }
+
+  // for zksync creation code check Create2UtilsZkSync documentation
+  function predictDeterministicAddressZkSync(
+    bytes memory creationCode,
+    bytes memory arguments
+  ) internal pure returns (address) {
+    return Create2UtilsZkSync.computeCreate2Address(SALT, creationCode, arguments);
   }
 
   function predictDeterministicAddressZkSync(bytes32 bytecodeHash) internal pure returns (address) {
-    return Create2UtilsZkSync.computeCreate2Address('v1', bytecodeHash);
+    return Create2UtilsZkSync.computeCreate2Address(SALT, bytecodeHash);
   }
 
   function predictDeterministicAddressZkSync(
     bytes32 bytecodeHash,
     bytes memory arguments
   ) internal pure returns (address) {
-    return Create2UtilsZkSync.computeCreate2Address('v1', bytecodeHash, arguments);
+    return Create2UtilsZkSync.computeCreate2Address(SALT, bytecodeHash, arguments);
   }
 
-  function buildActionZkSync(
-    Vm vm,
-    string memory contractName
-  ) internal view returns (IPayloadsControllerCore.ExecutionAction memory) {
-    bytes32 bytecodeHash = _getBytecodeHashFromArtifacts(vm, contractName);
-    address payloadAddress = predictDeterministicAddressZkSync(bytecodeHash);
-    return buildAction(payloadAddress);
+  function deployTransparentUpgradeableProxy(
+    address transparentProxyFactory,
+    address proxyAdmin,
+    address implementation,
+    bytes memory initData
+  ) internal returns (address) {
+    return
+      ITransparentProxyFactory(transparentProxyFactory).create(
+        implementation,
+        ProxyAdmin(proxyAdmin),
+        initData
+      );
+  }
+
+  function deployDeterministicTransparentUpgradeableProxy(
+    address transparentProxyFactory,
+    address proxyAdmin,
+    address implementation,
+    bytes memory initData
+  ) internal returns (address) {
+    return
+      ITransparentProxyFactory(transparentProxyFactory).createDeterministic(
+        implementation,
+        ProxyAdmin(proxyAdmin),
+        initData,
+        SALT
+      );
+  }
+
+  function predictDeterministicTransparentUpgradeableProxy(
+    address transparentProxyFactory,
+    address proxyAdmin,
+    address implementation,
+    bytes memory initData
+  ) internal view returns (address) {
+    return
+      ITransparentProxyFactory(transparentProxyFactory).predictCreateDeterministic(
+        implementation,
+        ProxyAdmin(proxyAdmin),
+        initData,
+        SALT
+      );
   }
 
   function _getBytecodeHashFromArtifacts(
@@ -248,6 +301,15 @@ library GovV3Helpers {
 
     require(bytecodeHash != (bytes32(0)), 'Unable to fetch bytecodeHash from the zkout artifacts');
     return bytecodeHash;
+  }
+
+  function buildActionZkSync(
+    Vm vm,
+    string memory contractName
+  ) internal view returns (IPayloadsControllerCore.ExecutionAction memory) {
+    bytes32 bytecodeHash = _getBytecodeHashFromArtifacts(vm, contractName);
+    address payloadAddress = predictDeterministicAddressZkSync(bytecodeHash);
+    return buildAction(payloadAddress);
   }
 
   /**
