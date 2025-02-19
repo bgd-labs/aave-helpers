@@ -216,7 +216,8 @@ contract ProtocolV2TestBase is CommonTestBase, DiffUtils {
       if (
         _includeInE2e(configs[i]) &&
         configs[i].usageAsCollateralEnabled &&
-        !configs[i].stableBorrowRateEnabled
+        !configs[i].stableBorrowRateEnabled &&
+	configs[i].ltv != 0
       ) return configs[i];
     }
     revert('ERROR: No usable collateral found');

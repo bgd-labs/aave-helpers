@@ -240,7 +240,9 @@ contract ProtocolV3TestBase is RawProtocolV3TestBase, CommonTestBase {
         // usable as collateral
         configs[i].usageAsCollateralEnabled &&
         // not isolated asset as we can only borrow stablecoins against it
-        configs[i].debtCeiling == 0
+        configs[i].debtCeiling == 0 &&
+	// ltv is not 0
+	configs[i].ltv != 0
       ) return configs[i];
     }
     revert('ERROR: No usable collateral found');
