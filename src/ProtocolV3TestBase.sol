@@ -192,23 +192,24 @@ contract ProtocolV3TestBase is RawProtocolV3TestBase, CommonTestBase {
         variableDebtTokenTotalSupply / 10 ** testAssetConfig.decimals + 1
       );
 
+      // caps should revert when supplying slightly more
       vm.expectRevert(bytes(Errors.SUPPLY_CAP_EXCEEDED));
       vm.prank(testAssetSupplier);
       pool.deposit({
         asset: testAssetConfig.underlying,
-        amount: 10 ** testAssetConfig.decimals,
+        amount: 11 ** testAssetConfig.decimals,
         onBehalfOf: testAssetSupplier,
         referralCode: 0
       });
       if (testAssetConfig.borrowingEnabled) {
         vm.expectRevert(bytes(Errors.BORROW_CAP_EXCEEDED));
-        vm.prank(testAssetSupplier);
+        vm.prank(collateralSupplier);
         pool.borrow({
           asset: testAssetConfig.underlying,
-          amount: 10 ** testAssetConfig.decimals,
+          amount: 11 ** testAssetConfig.decimals,
           interestRateMode: 2,
           referralCode: 0,
-          onBehalfOf: testAssetSupplier
+          onBehalfOf: collateralSupplier
         });
       }
 
