@@ -3,3 +3,7 @@ aave-v3-origin/=lib/aave-address-book/lib/aave-v3-origin/src/
 aave-v3-origin-tests/=lib/aave-address-book/lib/aave-v3-origin/tests
 forge-std/=lib/forge-std/src/
 solidity-utils/=lib/aave-address-book/lib/aave-v3-origin/lib/solidity-utils/src/
+@chainlink/contracts/=node_modules/@chainlink/contracts
+@chainlink/contracts-ccip/=node_modules/@chainlink/contracts-ccip
+@chainlink/local/=node_modules/@chainlink/local
+
