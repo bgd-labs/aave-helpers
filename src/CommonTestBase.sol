@@ -110,8 +110,8 @@ contract CommonTestBase is Test {
     }
     if (block.chainid == ChainIds.AVALANCHE) {
       // AUSD
-      if (asset == 0x00000000eFE302BEAA2b3e6e1b18d08D69a9012a) {
-        vm.prank(0x2CD78aD719a8c74898c5283f5Bc70920D8A061fd);
+      if (asset == AaveV3AvalancheAssets.AUSD_UNDERLYING) {
+        vm.prank(0x724dc807b04555b71ed48a6896b6F41593b8C637);
         IERC20(asset).transfer(user, amount);
         return true;
       }
