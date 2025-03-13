@@ -316,10 +316,6 @@ contract ProtocolV3TestBase is RawProtocolV3TestBase, CommonTestBase {
 
     // test flashloans
     if (testAssetConfig.isFlashloanable) {
-      if (address(flashLoanReceiver) == address(0)) {
-        flashLoanReceiver = new MockFlashLoanReceiver();
-      }
-
       _flashLoan({
         config: testAssetConfig,
         pool: pool,
