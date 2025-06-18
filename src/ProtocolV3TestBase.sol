@@ -8,6 +8,7 @@ import {IERC20Metadata} from 'openzeppelin-contracts/contracts/token/ERC20/exten
 import {SafeERC20} from 'openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol';
 import {ReserveConfiguration} from 'aave-v3-origin/contracts/protocol/libraries/configuration/ReserveConfiguration.sol';
 import {PercentageMath} from 'aave-v3-origin/contracts/protocol/libraries/math/PercentageMath.sol';
+import {WadRayMath} from 'aave-v3-origin/contracts/protocol/libraries/math/WadRayMath.sol';
 import {IDefaultInterestRateStrategyV2} from 'aave-v3-origin/contracts/interfaces/IDefaultInterestRateStrategyV2.sol';
 import {AaveV3EthereumAssets} from 'aave-address-book/AaveV3Ethereum.sol';
 import {DiffUtils} from 'aave-v3-origin-tests/utils/DiffUtils.sol';
@@ -17,13 +18,7 @@ import {IInitializableAdminUpgradeabilityProxy} from './interfaces/IInitializabl
 import {ExtendedAggregatorV2V3Interface} from './interfaces/ExtendedAggregatorV2V3Interface.sol';
 import {CommonTestBase, ReserveTokens, ChainIds} from './CommonTestBase.sol';
 import {ILegacyDefaultInterestRateStrategy} from './dependencies/ILegacyDefaultInterestRateStrategy.sol';
-import {MockFlashLoanReceiver} from './mocks/MockFlashLoanReceiver.sol';
 import {Strings} from 'openzeppelin-contracts/contracts/utils/Strings.sol';
-
-struct LocalVars {
-  IPoolDataProvider.TokenData[] reserves;
-  ReserveConfig[] configs;
-}
 
 struct InterestStrategyValues {
   address addressesProvider;
@@ -43,10 +38,24 @@ struct InterestStrategyValues {
 contract ProtocolV3TestBase is RawProtocolV3TestBase, CommonTestBase {
   using ReserveConfiguration for DataTypes.ReserveConfigurationMap;
   using PercentageMath for uint256;
+  using WadRayMath for uint256;
   using SafeERC20 for IERC20;
   using Strings for string;
 
-  MockFlashLoanReceiver internal flashLoanReceiver;
+  // mock receiver for flashloans
+  function executeOperation(
+    address[] calldata assets,
+    uint256[] calldata amounts,
+    uint256[] calldata premiums,
+    address /* initiator */,
+    bytes calldata /* params */
+  ) external virtual returns (bool) {
+    for (uint256 i = 0; i < assets.length; i++) {
+      IERC20(assets[i]).forceApprove(msg.sender, amounts[i] + premiums[i]);
+    }
+
+    return true;
+  }
 
   /**
    * @dev runs the default test suite that should run on any proposal touching the aave protocol which includes:
@@ -134,10 +143,6 @@ contract ProtocolV3TestBase is RawProtocolV3TestBase, CommonTestBase {
    * @param pool the pool that should be tested
    */
   function e2eTest(IPool pool) public {
-    if (address(flashLoanReceiver) == address(0)) {
-      flashLoanReceiver = new MockFlashLoanReceiver();
-    }
-
     ReserveConfig[] memory configs = _getReservesConfigs(pool);
     ReserveConfig memory collateralConfig = _getGoodCollateral(configs);
     uint256 snapshot = vm.snapshotState();
@@ -167,31 +172,28 @@ contract ProtocolV3TestBase is RawProtocolV3TestBase, CommonTestBase {
     uint256 collateralAssetAmount = _getTokenAmountByDollarValue(pool, collateralConfig, 100_000);
     uint256 testAssetAmount = _getTokenAmountByDollarValue(pool, testAssetConfig, 10_000);
 
-    if (address(flashLoanReceiver) == address(0)) {
-      flashLoanReceiver = new MockFlashLoanReceiver();
-    }
-
     // remove caps as they should not prevent testing
     IPoolAddressesProvider addressesProvider = IPoolAddressesProvider(pool.ADDRESSES_PROVIDER());
     IPoolConfigurator poolConfigurator = IPoolConfigurator(addressesProvider.getPoolConfigurator());
     vm.startPrank(addressesProvider.getACLAdmin());
-    if (collateralConfig.supplyCap != 0)
+    if (collateralConfig.supplyCap != 0) {
       poolConfigurator.setSupplyCap(collateralConfig.underlying, 0);
-    if (testAssetConfig.supplyCap != 0)
+    }
+    if (testAssetConfig.supplyCap != 0) {
       poolConfigurator.setSupplyCap(testAssetConfig.underlying, 0);
-    if (testAssetConfig.borrowCap != 0)
+    }
+    if (testAssetConfig.borrowCap != 0) {
       poolConfigurator.setBorrowCap(testAssetConfig.underlying, 0);
+    }
     vm.stopPrank();
 
     _deposit(collateralConfig, pool, collateralSupplier, collateralAssetAmount);
-    if (testAssetConfig.underlying != AaveV3EthereumAssets.GHO_UNDERLYING) {
-      _deposit(testAssetConfig, pool, testAssetSupplier, testAssetAmount);
-    }
+    _deposit(testAssetConfig, pool, testAssetSupplier, testAssetAmount);
 
     uint256 snapshotAfterDeposits = vm.snapshotState();
 
     // test deposits and withdrawals
-    if (testAssetConfig.underlying != AaveV3EthereumAssets.GHO_UNDERLYING) {
+    {
       uint256 aTokenTotalSupply = IERC20(testAssetConfig.aToken).totalSupply();
       uint256 variableDebtTokenTotalSupply = IERC20(testAssetConfig.variableDebtToken)
         .totalSupply();
@@ -208,7 +210,7 @@ contract ProtocolV3TestBase is RawProtocolV3TestBase, CommonTestBase {
       );
 
       // caps should revert when supplying slightly more
-      vm.expectRevert(bytes(Errors.SUPPLY_CAP_EXCEEDED));
+      vm.expectRevert(Errors.SupplyCapExceeded.selector);
       vm.prank(testAssetSupplier);
       pool.deposit({
         asset: testAssetConfig.underlying,
@@ -239,7 +241,7 @@ contract ProtocolV3TestBase is RawProtocolV3TestBase, CommonTestBase {
           );
         }
 
-        vm.expectRevert(bytes(Errors.BORROW_CAP_EXCEEDED));
+        vm.expectRevert(Errors.BorrowCapExceeded.selector);
         vm.prank(collateralSupplier);
         pool.borrow({
           asset: testAssetConfig.underlying,
@@ -278,27 +280,17 @@ contract ProtocolV3TestBase is RawProtocolV3TestBase, CommonTestBase {
         withATokens: false
       });
 
-      if (testAssetConfig.underlying != AaveV3EthereumAssets.GHO_UNDERLYING) {
-        vm.revertToState(snapshotBeforeRepay);
+      vm.revertToState(snapshotBeforeRepay);
 
-        _repay({
-          config: testAssetConfig,
-          pool: pool,
-          user: collateralSupplier,
-          amount: testAssetAmount,
-          withATokens: true
-        });
-      }
-
-      vm.revertToState(snapshotAfterDeposits);
-
-      // test liquidations
-      _borrow({
+      _repay({
         config: testAssetConfig,
         pool: pool,
         user: collateralSupplier,
-        amount: testAssetAmount
+        amount: testAssetAmount,
+        withATokens: true
       });
+
+      vm.revertToState(snapshotBeforeRepay);
 
       if (testAssetConfig.underlying != collateralConfig.underlying) {
         _changeAssetPrice(pool, testAssetConfig, 1000_00); // price increases to 1'000%
@@ -348,7 +340,7 @@ contract ProtocolV3TestBase is RawProtocolV3TestBase, CommonTestBase {
         config: testAssetConfig,
         pool: pool,
         user: collateralSupplier,
-        receiverAddress: address(flashLoanReceiver),
+        receiverAddress: address(this),
         amount: testAssetAmount,
         interestRateMode: 0
       });
@@ -358,7 +350,7 @@ contract ProtocolV3TestBase is RawProtocolV3TestBase, CommonTestBase {
           config: testAssetConfig,
           pool: pool,
           user: collateralSupplier,
-          receiverAddress: address(flashLoanReceiver),
+          receiverAddress: address(this),
           amount: testAssetAmount,
           interestRateMode: 2
         });
@@ -433,12 +425,12 @@ contract ProtocolV3TestBase is RawProtocolV3TestBase, CommonTestBase {
     for (uint256 i = 0; i < configs.length; i++) {
       if (
         // not frozen etc
-        _includeInE2e(configs[i]) &&
         // usable as collateral
-        configs[i].usageAsCollateralEnabled &&
         // not isolated asset as we can only borrow stablecoins against it
-        configs[i].debtCeiling == 0 &&
         // ltv is not 0
+        _includeInE2e(configs[i]) &&
+        configs[i].usageAsCollateralEnabled &&
+        configs[i].debtCeiling == 0 &&
         configs[i].ltv != 0
       ) return configs[i];
     }
@@ -573,7 +565,7 @@ contract ProtocolV3TestBase is RawProtocolV3TestBase, CommonTestBase {
     pool.liquidationCall({
       collateralAsset: collateralConfig.underlying,
       debtAsset: debtConfig.underlying,
-      user: borrower,
+      borrower: borrower,
       debtToCover: debtToCover,
       receiveAToken: receiveAToken
     });
@@ -585,6 +577,18 @@ contract ProtocolV3TestBase is RawProtocolV3TestBase, CommonTestBase {
     vm.stopPrank();
   }
 
+  struct FlashLoanVars {
+    uint256 underlyingTokenBalanceOfATokenBefore;
+    uint256 debtTokenBalanceOfUserBefore;
+    uint256 flashLoanPremiumTotal;
+    uint256 flashLoanPremiumToProtocol;
+    uint256 underlyingTokenBalanceOfATokenAfter;
+    uint256 debtTokenBalanceOfUserAfter;
+    uint256[] interestRateModes;
+    uint256[] amounts;
+    address[] assets;
+  }
+
   function _flashLoan(
     ReserveConfig memory config,
     IPool pool,
@@ -592,272 +596,88 @@ contract ProtocolV3TestBase is RawProtocolV3TestBase, CommonTestBase {
     address receiverAddress,
     uint256 amount,
     uint256 interestRateMode
-  ) internal {
+  ) internal virtual {
+    FlashLoanVars memory vars;
+
     vm.startPrank(user);
 
-    uint256 underlyingTokenBalanceOfATokenBefore = IERC20(config.underlying).balanceOf(
-      config.aToken
-    );
-    uint256 debtTokenBalanceOfUserBefore = IERC20(config.variableDebtToken).balanceOf(user);
+    DataTypes.ReserveDataLegacy memory reserveDataBefore = pool.getReserveData(config.underlying);
 
-    uint256 totalPremium;
+    vars.underlyingTokenBalanceOfATokenBefore = IERC20(config.underlying).balanceOf(config.aToken);
+    vars.debtTokenBalanceOfUserBefore = IERC20(config.variableDebtToken).balanceOf(user);
+
     if (interestRateMode == 0) {
-      uint256 flashLoanPremiumTotal = pool.FLASHLOAN_PREMIUM_TOTAL();
+      vars.flashLoanPremiumTotal = pool.FLASHLOAN_PREMIUM_TOTAL();
+      vars.flashLoanPremiumToProtocol = pool.FLASHLOAN_PREMIUM_TO_PROTOCOL();
 
-      totalPremium = amount.percentMul(flashLoanPremiumTotal);
+      vars.flashLoanPremiumTotal = amount.percentMul(vars.flashLoanPremiumTotal);
+      vars.flashLoanPremiumToProtocol = vars.flashLoanPremiumTotal.percentMul(
+        vars.flashLoanPremiumToProtocol
+      );
 
-      deal2(config.underlying, receiverAddress, totalPremium);
+      deal2(config.underlying, receiverAddress, vars.flashLoanPremiumTotal);
     }
 
     console.log('FLASH LOAN: %s, Amount: %s', config.symbol, amount);
 
-    {
-      address[] memory assets = new address[](1);
-      assets[0] = config.underlying;
+    vars.assets = new address[](1);
+    vars.assets[0] = config.underlying;
 
-      uint256[] memory amounts = new uint256[](1);
-      amounts[0] = amount;
+    vars.amounts = new uint256[](1);
+    vars.amounts[0] = amount;
 
-      uint256[] memory interestRateModes = new uint256[](1);
-      interestRateModes[0] = interestRateMode;
+    vars.interestRateModes = new uint256[](1);
+    vars.interestRateModes[0] = interestRateMode;
 
-      pool.flashLoan({
-        receiverAddress: receiverAddress,
-        assets: assets,
-        amounts: amounts,
-        interestRateModes: interestRateModes,
-        onBehalfOf: user,
-        params: '0x',
-        referralCode: 0
-      });
-    }
+    pool.flashLoan({
+      receiverAddress: receiverAddress,
+      assets: vars.assets,
+      amounts: vars.amounts,
+      interestRateModes: vars.interestRateModes,
+      onBehalfOf: user,
+      params: '',
+      referralCode: 0
+    });
 
-    uint256 underlyingTokenBalanceOfATokenAfter = IERC20(config.underlying).balanceOf(
-      config.aToken
-    );
-    uint256 debtTokenBalanceOfUserAfter = IERC20(config.variableDebtToken).balanceOf(user);
+    vars.underlyingTokenBalanceOfATokenAfter = IERC20(config.underlying).balanceOf(config.aToken);
+    vars.debtTokenBalanceOfUserAfter = IERC20(config.variableDebtToken).balanceOf(user);
+    DataTypes.ReserveDataLegacy memory reserveDataAfter = pool.getReserveData(config.underlying);
 
     if (interestRateMode == 0) {
       assertEq(
-        underlyingTokenBalanceOfATokenBefore + totalPremium,
-        underlyingTokenBalanceOfATokenAfter
+        vars.underlyingTokenBalanceOfATokenBefore + vars.flashLoanPremiumToProtocol,
+        vars.underlyingTokenBalanceOfATokenAfter,
+        '11'
+      );
+      assertEq(
+        reserveDataBefore.accruedToTreasury +
+          vars.flashLoanPremiumToProtocol.rayDiv(reserveDataAfter.liquidityIndex),
+        reserveDataAfter.accruedToTreasury,
+        '12'
       );
 
-      assertEq(debtTokenBalanceOfUserAfter, debtTokenBalanceOfUserBefore);
+      assertEq(vars.debtTokenBalanceOfUserAfter, vars.debtTokenBalanceOfUserBefore, '2');
     } else {
-      assertGt(underlyingTokenBalanceOfATokenBefore, underlyingTokenBalanceOfATokenAfter);
-      assertEq(underlyingTokenBalanceOfATokenBefore - amount, underlyingTokenBalanceOfATokenAfter);
+      assertGt(
+        vars.underlyingTokenBalanceOfATokenBefore,
+        vars.underlyingTokenBalanceOfATokenAfter,
+        '3'
+      );
+      assertEq(
+        vars.underlyingTokenBalanceOfATokenBefore - amount,
+        vars.underlyingTokenBalanceOfATokenAfter,
+        '4'
+      );
 
-      assertGt(debtTokenBalanceOfUserAfter, debtTokenBalanceOfUserBefore);
-      assertApproxEqAbs(debtTokenBalanceOfUserAfter, debtTokenBalanceOfUserBefore + amount, 1);
+      assertGt(vars.debtTokenBalanceOfUserAfter, vars.debtTokenBalanceOfUserBefore, '5');
+      assertApproxEqAbs(
+        vars.debtTokenBalanceOfUserAfter,
+        vars.debtTokenBalanceOfUserBefore + amount,
+        1,
+        '6'
+      );
     }
 
     vm.stopPrank();
-  }
-
-  function getIsVirtualAccActive(
-    DataTypes.ReserveConfigurationMap memory configuration
-  ) external pure returns (bool) {
-    return configuration.getIsVirtualAccActive();
-  }
-
-  function _writeEModeConfigs(string memory path, IPool pool) internal virtual override {
-    // keys for json stringification
-    string memory eModesKey = 'emodes';
-    string memory content = '{}';
-    vm.serializeJson(eModesKey, '{}');
-    uint8 emptyCounter = 0;
-    for (uint8 i = 0; i < 256; i++) {
-      try pool.getEModeCategoryCollateralConfig(i) returns (DataTypes.CollateralConfig memory cfg) {
-        if (cfg.liquidationThreshold == 0) {
-          if (++emptyCounter > 2) break;
-        } else {
-          string memory key = vm.toString(i);
-          vm.serializeJson(key, '{}');
-          vm.serializeUint(key, 'eModeCategory', i);
-          vm.serializeString(key, 'label', pool.getEModeCategoryLabel(i));
-          vm.serializeUint(key, 'ltv', cfg.ltv);
-          vm.serializeString(
-            key,
-            'collateralBitmap',
-            vm.toString(pool.getEModeCategoryCollateralBitmap(i))
-          );
-          vm.serializeString(
-            key,
-            'borrowableBitmap',
-            vm.toString(pool.getEModeCategoryBorrowableBitmap(i))
-          );
-          vm.serializeUint(key, 'liquidationThreshold', cfg.liquidationThreshold);
-          string memory object = vm.serializeUint(key, 'liquidationBonus', cfg.liquidationBonus);
-          content = vm.serializeString(eModesKey, key, object);
-          emptyCounter = 0;
-        }
-      } catch {
-        DataTypes.EModeCategoryLegacy memory category = pool.getEModeCategoryData(i);
-        if (category.liquidationThreshold == 0) {
-          if (++emptyCounter > 2) break;
-        } else {
-          string memory key = vm.toString(i);
-          vm.serializeJson(key, '{}');
-          vm.serializeUint(key, 'eModeCategory', i);
-          vm.serializeString(key, 'label', category.label);
-          vm.serializeUint(key, 'ltv', category.ltv);
-          vm.serializeUint(key, 'liquidationThreshold', category.liquidationThreshold);
-          vm.serializeUint(key, 'liquidationBonus', category.liquidationBonus);
-          string memory object = vm.serializeAddress(key, 'priceSource', category.priceSource);
-          content = vm.serializeString(eModesKey, key, object);
-          emptyCounter = 0;
-        }
-      }
-    }
-    string memory output = vm.serializeString('root', 'eModes', content);
-    vm.writeJson(output, path);
-  }
-
-  function _writeStrategyConfigs(
-    string memory path,
-    ReserveConfig[] memory configs
-  ) internal virtual override {
-    // keys for json stringification
-    string memory strategiesKey = 'stategies';
-    string memory content = '{}';
-    vm.serializeJson(strategiesKey, '{}');
-
-    for (uint256 i = 0; i < configs.length; i++) {
-      IDefaultInterestRateStrategyV2 strategyV2 = IDefaultInterestRateStrategyV2(
-        configs[i].interestRateStrategy
-      );
-      ILegacyDefaultInterestRateStrategy strategyV1 = ILegacyDefaultInterestRateStrategy(
-        configs[i].interestRateStrategy
-      );
-      address asset = configs[i].underlying;
-      string memory key = vm.toString(asset);
-      vm.serializeJson(key, '{}');
-      vm.serializeString(key, 'address', vm.toString(configs[i].interestRateStrategy));
-      string memory object;
-      try strategyV1.getVariableRateSlope1() {
-        vm.serializeString(
-          key,
-          'baseStableBorrowRate',
-          vm.toString(strategyV1.getBaseStableBorrowRate())
-        );
-        vm.serializeString(key, 'stableRateSlope1', vm.toString(strategyV1.getStableRateSlope1()));
-        vm.serializeString(key, 'stableRateSlope2', vm.toString(strategyV1.getStableRateSlope2()));
-        vm.serializeString(
-          key,
-          'baseVariableBorrowRate',
-          vm.toString(strategyV1.getBaseVariableBorrowRate())
-        );
-        vm.serializeString(
-          key,
-          'variableRateSlope1',
-          vm.toString(strategyV1.getVariableRateSlope1())
-        );
-        vm.serializeString(
-          key,
-          'variableRateSlope2',
-          vm.toString(strategyV1.getVariableRateSlope2())
-        );
-        vm.serializeString(
-          key,
-          'optimalStableToTotalDebtRatio',
-          vm.toString(strategyV1.OPTIMAL_STABLE_TO_TOTAL_DEBT_RATIO())
-        );
-        vm.serializeString(
-          key,
-          'maxExcessStableToTotalDebtRatio',
-          vm.toString(strategyV1.MAX_EXCESS_STABLE_TO_TOTAL_DEBT_RATIO())
-        );
-        vm.serializeString(key, 'optimalUsageRatio', vm.toString(strategyV1.OPTIMAL_USAGE_RATIO()));
-        object = vm.serializeString(
-          key,
-          'maxExcessUsageRatio',
-          vm.toString(strategyV1.MAX_EXCESS_USAGE_RATIO())
-        );
-      } catch {
-        vm.serializeString(
-          key,
-          'baseVariableBorrowRate',
-          vm.toString(strategyV2.getBaseVariableBorrowRate(asset))
-        );
-        vm.serializeString(
-          key,
-          'variableRateSlope1',
-          vm.toString(strategyV2.getVariableRateSlope1(asset))
-        );
-        vm.serializeString(
-          key,
-          'variableRateSlope2',
-          vm.toString(strategyV2.getVariableRateSlope2(asset))
-        );
-        vm.serializeString(
-          key,
-          'maxVariableBorrowRate',
-          vm.toString(strategyV2.getMaxVariableBorrowRate(asset))
-        );
-        object = vm.serializeString(
-          key,
-          'optimalUsageRatio',
-          vm.toString(strategyV2.getOptimalUsageRatio(asset))
-        );
-      }
-      content = vm.serializeString(strategiesKey, key, object);
-    }
-    string memory output = vm.serializeString('root', 'strategies', content);
-    vm.writeJson(output, path);
-  }
-
-  // TODO: deprecated, remove it later
-  function _validateInterestRateStrategy(
-    address interestRateStrategyAddress,
-    address expectedStrategy,
-    InterestStrategyValues memory expectedStrategyValues
-  ) internal view {
-    ILegacyDefaultInterestRateStrategy strategy = ILegacyDefaultInterestRateStrategy(
-      interestRateStrategyAddress
-    );
-
-    require(
-      address(strategy) == expectedStrategy,
-      '_validateInterestRateStrategy() : INVALID_STRATEGY_ADDRESS'
-    );
-
-    require(
-      strategy.OPTIMAL_USAGE_RATIO() == expectedStrategyValues.optimalUsageRatio,
-      '_validateInterestRateStrategy() : INVALID_OPTIMAL_RATIO'
-    );
-    require(
-      strategy.OPTIMAL_STABLE_TO_TOTAL_DEBT_RATIO() ==
-        expectedStrategyValues.optimalStableToTotalDebtRatio,
-      '_validateInterestRateStrategy() : INVALID_OPTIMAL_STABLE_TO_TOTAL_DEBT_RATIO'
-    );
-    require(
-      address(strategy.ADDRESSES_PROVIDER()) == expectedStrategyValues.addressesProvider,
-      '_validateInterestRateStrategy() : INVALID_ADDRESSES_PROVIDER'
-    );
-    require(
-      strategy.getBaseVariableBorrowRate() == expectedStrategyValues.baseVariableBorrowRate,
-      '_validateInterestRateStrategy() : INVALID_BASE_VARIABLE_BORROW'
-    );
-    require(
-      strategy.getBaseStableBorrowRate() == expectedStrategyValues.baseStableBorrowRate,
-      '_validateInterestRateStrategy() : INVALID_BASE_STABLE_BORROW'
-    );
-    require(
-      strategy.getStableRateSlope1() == expectedStrategyValues.stableRateSlope1,
-      '_validateInterestRateStrategy() : INVALID_STABLE_SLOPE_1'
-    );
-    require(
-      strategy.getStableRateSlope2() == expectedStrategyValues.stableRateSlope2,
-      '_validateInterestRateStrategy() : INVALID_STABLE_SLOPE_2'
-    );
-    require(
-      strategy.getVariableRateSlope1() == expectedStrategyValues.variableRateSlope1,
-      '_validateInterestRateStrategy() : INVALID_VARIABLE_SLOPE_1'
-    );
-    require(
-      strategy.getVariableRateSlope2() == expectedStrategyValues.variableRateSlope2,
-      '_validateInterestRateStrategy() : INVALID_VARIABLE_SLOPE_2'
-    );
   }
 }
