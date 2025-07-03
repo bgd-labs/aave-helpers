@@ -13,7 +13,7 @@ import {ProxyHelpers} from 'aave-v3-origin-tests/utils/ProxyHelpers.sol';
 import {CommonTestBase} from '../../src/CommonTestBase.sol';
 import {IDefaultInterestRateStrategyV2} from 'aave-v3-origin/contracts/interfaces/IDefaultInterestRateStrategyV2.sol';
 import {ReserveConfig, ReserveTokens, DataTypes} from 'aave-v3-origin-tests/utils/ProtocolV3TestBase.sol';
-import {ProtocolV3TestBase as TestBase, LocalVars} from './ProtocolV3TestBase.sol';
+import {ProtocolV3TestBase as TestBase} from './ProtocolV3TestBase.sol';
 import {ILegacyDefaultInterestRateStrategy} from '../../src/dependencies/ILegacyDefaultInterestRateStrategy.sol';
 import {DiffUtils} from 'aave-v3-origin-tests/utils/DiffUtils.sol';
 
@@ -53,46 +53,29 @@ contract SnapshotHelpersV3 is CommonTestBase, DiffUtils {
     vm.serializeJson(eModesKey, '{}');
     uint8 emptyCounter = 0;
     for (uint8 i = 0; i < 256; i++) {
-      try pool.getEModeCategoryCollateralConfig(i) returns (DataTypes.CollateralConfig memory cfg) {
-        if (cfg.liquidationThreshold == 0) {
-          if (++emptyCounter > 2) break;
-        } else {
-          string memory key = vm.toString(i);
-          vm.serializeJson(key, '{}');
-          vm.serializeUint(key, 'eModeCategory', i);
-          vm.serializeString(key, 'label', pool.getEModeCategoryLabel(i));
-          vm.serializeUint(key, 'ltv', cfg.ltv);
-          vm.serializeString(
-            key,
-            'collateralBitmap',
-            vm.toString(pool.getEModeCategoryCollateralBitmap(i))
-          );
-          vm.serializeString(
-            key,
-            'borrowableBitmap',
-            vm.toString(pool.getEModeCategoryBorrowableBitmap(i))
-          );
-          vm.serializeUint(key, 'liquidationThreshold', cfg.liquidationThreshold);
-          string memory object = vm.serializeUint(key, 'liquidationBonus', cfg.liquidationBonus);
-          content = vm.serializeString(eModesKey, key, object);
-          emptyCounter = 0;
-        }
-      } catch {
-        DataTypes.EModeCategoryLegacy memory category = pool.getEModeCategoryData(i);
-        if (category.liquidationThreshold == 0) {
-          if (++emptyCounter > 2) break;
-        } else {
-          string memory key = vm.toString(i);
-          vm.serializeJson(key, '{}');
-          vm.serializeUint(key, 'eModeCategory', i);
-          vm.serializeString(key, 'label', category.label);
-          vm.serializeUint(key, 'ltv', category.ltv);
-          vm.serializeUint(key, 'liquidationThreshold', category.liquidationThreshold);
-          vm.serializeUint(key, 'liquidationBonus', category.liquidationBonus);
-          string memory object = vm.serializeAddress(key, 'priceSource', category.priceSource);
-          content = vm.serializeString(eModesKey, key, object);
-          emptyCounter = 0;
-        }
+      DataTypes.CollateralConfig memory cfg = pool.getEModeCategoryCollateralConfig(i);
+      if (cfg.liquidationThreshold == 0) {
+        if (++emptyCounter > 2) break;
+      } else {
+        string memory key = vm.toString(i);
+        vm.serializeJson(key, '{}');
+        vm.serializeUint(key, 'eModeCategory', i);
+        vm.serializeString(key, 'label', pool.getEModeCategoryLabel(i));
+        vm.serializeUint(key, 'ltv', cfg.ltv);
+        vm.serializeString(
+          key,
+          'collateralBitmap',
+          vm.toString(pool.getEModeCategoryCollateralBitmap(i))
+        );
+        vm.serializeString(
+          key,
+          'borrowableBitmap',
+          vm.toString(pool.getEModeCategoryBorrowableBitmap(i))
+        );
+        vm.serializeUint(key, 'liquidationThreshold', cfg.liquidationThreshold);
+        string memory object = vm.serializeUint(key, 'liquidationBonus', cfg.liquidationBonus);
+        content = vm.serializeString(eModesKey, key, object);
+        emptyCounter = 0;
       }
     }
     string memory output = vm.serializeString('root', 'eModes', content);
@@ -102,88 +85,44 @@ contract SnapshotHelpersV3 is CommonTestBase, DiffUtils {
   function writeStrategyConfigs(string memory path, ReserveConfig[] memory configs) public {
     _switchOnZkVm();
     // keys for json stringification
-    string memory strategiesKey = 'stategies';
+    string memory strategiesKey = 'strategies';
     string memory content = '{}';
     vm.serializeJson(strategiesKey, '{}');
 
     for (uint256 i = 0; i < configs.length; i++) {
-      IDefaultInterestRateStrategyV2 strategyV2 = IDefaultInterestRateStrategyV2(
-        configs[i].interestRateStrategy
-      );
-      ILegacyDefaultInterestRateStrategy strategyV1 = ILegacyDefaultInterestRateStrategy(
-        configs[i].interestRateStrategy
-      );
       address asset = configs[i].underlying;
       string memory key = vm.toString(asset);
       vm.serializeJson(key, '{}');
       vm.serializeString(key, 'address', vm.toString(configs[i].interestRateStrategy));
-      string memory object;
-      try strategyV1.getVariableRateSlope1() {
-        vm.serializeString(
-          key,
-          'baseStableBorrowRate',
-          vm.toString(strategyV1.getBaseStableBorrowRate())
-        );
-        vm.serializeString(key, 'stableRateSlope1', vm.toString(strategyV1.getStableRateSlope1()));
-        vm.serializeString(key, 'stableRateSlope2', vm.toString(strategyV1.getStableRateSlope2()));
-        vm.serializeString(
-          key,
-          'baseVariableBorrowRate',
-          vm.toString(strategyV1.getBaseVariableBorrowRate())
-        );
-        vm.serializeString(
-          key,
-          'variableRateSlope1',
-          vm.toString(strategyV1.getVariableRateSlope1())
-        );
-        vm.serializeString(
-          key,
-          'variableRateSlope2',
-          vm.toString(strategyV1.getVariableRateSlope2())
-        );
-        vm.serializeString(
-          key,
-          'optimalStableToTotalDebtRatio',
-          vm.toString(strategyV1.OPTIMAL_STABLE_TO_TOTAL_DEBT_RATIO())
-        );
-        vm.serializeString(
-          key,
-          'maxExcessStableToTotalDebtRatio',
-          vm.toString(strategyV1.MAX_EXCESS_STABLE_TO_TOTAL_DEBT_RATIO())
-        );
-        vm.serializeString(key, 'optimalUsageRatio', vm.toString(strategyV1.OPTIMAL_USAGE_RATIO()));
-        object = vm.serializeString(
-          key,
-          'maxExcessUsageRatio',
-          vm.toString(strategyV1.MAX_EXCESS_USAGE_RATIO())
-        );
-      } catch {
-        vm.serializeString(
-          key,
-          'baseVariableBorrowRate',
-          vm.toString(strategyV2.getBaseVariableBorrowRate(asset))
-        );
-        vm.serializeString(
-          key,
-          'variableRateSlope1',
-          vm.toString(strategyV2.getVariableRateSlope1(asset))
-        );
-        vm.serializeString(
-          key,
-          'variableRateSlope2',
-          vm.toString(strategyV2.getVariableRateSlope2(asset))
-        );
-        vm.serializeString(
-          key,
-          'maxVariableBorrowRate',
-          vm.toString(strategyV2.getMaxVariableBorrowRate(asset))
-        );
-        object = vm.serializeString(
-          key,
-          'optimalUsageRatio',
-          vm.toString(strategyV2.getOptimalUsageRatio(asset))
-        );
-      }
+      IDefaultInterestRateStrategyV2 strategy = IDefaultInterestRateStrategyV2(
+        configs[i].interestRateStrategy
+      );
+      vm.serializeString(
+        key,
+        'baseVariableBorrowRate',
+        vm.toString(strategy.getBaseVariableBorrowRate(asset))
+      );
+      vm.serializeString(
+        key,
+        'variableRateSlope1',
+        vm.toString(strategy.getVariableRateSlope1(asset))
+      );
+      vm.serializeString(
+        key,
+        'variableRateSlope2',
+        vm.toString(strategy.getVariableRateSlope2(asset))
+      );
+      vm.serializeString(
+        key,
+        'maxVariableBorrowRate',
+        vm.toString(strategy.getMaxVariableBorrowRate(asset))
+      );
+      string memory object = vm.serializeString(
+        key,
+        'optimalUsageRatio',
+        vm.toString(strategy.getOptimalUsageRatio(asset))
+      );
+
       content = vm.serializeString(strategiesKey, key, object);
     }
     string memory output = vm.serializeString('root', 'strategies', content);
@@ -277,7 +216,6 @@ contract SnapshotHelpersV3 is CommonTestBase, DiffUtils {
         }
       }
 
-      vm.serializeBool(key, 'virtualAccountingActive', config.virtualAccActive);
       vm.serializeString(key, 'virtualBalance', vm.toString(config.virtualBalance));
       vm.serializeString(
         key,
