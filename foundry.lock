@@ -3,6 +3,9 @@
     "rev": "c7be2a3481f9e51230880bb0949072c7e3a4da82"
   },
   "lib/aave-address-book": {
-    "rev": "1a3c41b8b267fe9ef994df6427f767c8d4f08900"
+    "branch": {
+      "name": "feat/ink",
+      "rev": "f6631273059bf1ab7d74d506ed18b9aca69c5070"
+    }
   }
 }

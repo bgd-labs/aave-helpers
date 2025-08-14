@@ -6,9 +6,11 @@ import {ChainIds, ChainHelpers} from 'solidity-utils/contracts/utils/ChainHelper
 import {IpfsUtils} from './IpfsUtils.sol';
 import {console2} from 'forge-std/console2.sol';
 import {ProxyHelpers} from 'aave-v3-origin-tests/utils/ProxyHelpers.sol';
+import {IPool} from 'aave-address-book/AaveV3.sol';
 import {PayloadsControllerUtils, IGovernancePowerStrategy, IPayloadsControllerCore, IGovernanceCore} from 'aave-address-book/GovernanceV3.sol';
 import {IVotingMachineWithProofs} from 'aave-address-book/governance-v3/IVotingMachineWithProofs.sol';
 import {IVotingPortal} from 'aave-address-book/governance-v3/IVotingPortal.sol';
+import {AaveV3InkWhitelabel} from 'aave-address-book/AaveV3InkWhitelabel.sol';
 import {GovernanceV3Arbitrum} from 'aave-address-book/GovernanceV3Arbitrum.sol';
 import {GovernanceV3Avalanche} from 'aave-address-book/GovernanceV3Avalanche.sol';
 import {GovernanceV3Polygon} from 'aave-address-book/GovernanceV3Polygon.sol';
@@ -19,6 +21,7 @@ import {GovernanceV3Base} from 'aave-address-book/GovernanceV3Base.sol';
 import {GovernanceV3BNB} from 'aave-address-book/GovernanceV3BNB.sol';
 import {GovernanceV3Gnosis} from 'aave-address-book/GovernanceV3Gnosis.sol';
 import {GovernanceV3Scroll} from 'aave-address-book/GovernanceV3Scroll.sol';
+import {GovernanceV3InkWhitelabel} from 'aave-address-book/GovernanceV3InkWhitelabel.sol';
 import {GovernanceV3PolygonZkEvm} from 'aave-address-book/GovernanceV3PolygonZkEvm.sol';
 import {GovernanceV3ZkSync} from 'aave-address-book/GovernanceV3ZkSync.sol';
 import {GovernanceV3Linea} from 'aave-address-book/GovernanceV3Linea.sol';
@@ -30,6 +33,7 @@ import {MiscEthereum} from 'aave-address-book/MiscEthereum.sol';
 import {Create2Utils} from 'solidity-utils/contracts/utils/ScriptUtils.sol';
 import {StorageHelpers} from './StorageHelpers.sol';
 import {Create2UtilsZkSync} from 'solidity-utils/../zksync/src/contracts/utils/ScriptUtilsZkSync.sol';
+import {IPermissionedPayloadsController} from './dependencies/IPermissionedPayloadsController.sol';
 
 interface IGovernance_V2_5 {
   /**
@@ -357,6 +361,34 @@ library GovV3Helpers {
     }
   }
 
+  /**
+   * Logs the calldata for creating a payload from the permissioned-payloads-controller
+   * @param permissionedPayloadsController address of the permissioned payloads controller
+   * @param actions actions
+   */
+  function createPermissionedPayloadCalldata(
+    IPayloadsControllerCore permissionedPayloadsController,
+    IPayloadsControllerCore.ExecutionAction[] memory actions
+  ) internal view {
+    require(actions.length > 0, 'INVALID ACTIONS');
+
+    (, IPayloadsControllerCore.Payload memory payload, bool payloadCreated) = _findCreatedPayload(
+      IPayloadsControllerCore(permissionedPayloadsController),
+      actions
+    );
+    if (payloadCreated && payload.createdAt > block.timestamp - 7 days) {
+      revert PayloadAlreadyCreated();
+    } else {
+      console2.log(
+        'safe: ',
+        IPermissionedPayloadsController(address(permissionedPayloadsController)).payloadsManager()
+      );
+      console2.log('target address: ', address(permissionedPayloadsController));
+      console2.log('calldata: ');
+      console2.logBytes(abi.encodeCall(IPayloadsControllerCore.createPayload, actions));
+    }
+  }
+
   function createPayload(
     IPayloadsControllerCore.ExecutionAction memory action
   ) internal returns (uint40) {
@@ -390,8 +422,20 @@ library GovV3Helpers {
    * @param payloadAddress address of the payload to execute
    */
   function executePayload(Vm vm, address payloadAddress) internal {
-    IPayloadsControllerCore payloadsController = getPayloadsController(block.chainid);
-    payloadsController.executePayload(readyPayload(vm, payloadAddress));
+    executePayload(vm, payloadAddress, address(getPayloadsController(block.chainid)));
+  }
+
+  /**
+   * @dev executes a payloadAddress via custom payloadsController by injecting it into storage and executing it afterwards.
+   * @notice This method is for test purposes only.
+   * @param vm Vm
+   * @param payloadAddress address of the payload to execute
+   * @param payloadsController address of the payloadsController
+   */
+  function executePayload(Vm vm, address payloadAddress, address payloadsController) internal {
+    IPayloadsControllerCore(payloadsController).executePayload(
+      readyPayload(vm, payloadAddress, payloadsController)
+    );
   }
 
   /**
@@ -402,13 +446,31 @@ library GovV3Helpers {
    * @param payloadAddress address of the payload to execute
    */
   function readyPayload(Vm vm, address payloadAddress) internal returns (uint40) {
+    return readyPayload(vm, payloadAddress, address(getPayloadsController(block.chainid)));
+  }
+
+  /**
+   * @dev prepares a payloadAddress for execution via specific payloadsController.
+   * @notice This method is for test purposes only.
+   * @param vm Vm
+   * @param payloadAddress address of the payload to execute
+   * @param payloadsController address of the payloadsController
+   */
+  function readyPayload(
+    Vm vm,
+    address payloadAddress,
+    address payloadsController
+  ) internal returns (uint40) {
     require(payloadAddress.code.length > 0, 'PAYLOAD_ADDRESS_HAS_NO_CODE');
-    IPayloadsControllerCore payloadsController = getPayloadsController(block.chainid);
     IPayloadsControllerCore.ExecutionAction[]
       memory actions = new IPayloadsControllerCore.ExecutionAction[](1);
     actions[0] = buildAction(payloadAddress);
-    uint40 payloadId = GovV3StorageHelpers.injectPayload(vm, payloadsController, actions);
-    GovV3StorageHelpers.readyPayloadId(vm, payloadsController, payloadId);
+    uint40 payloadId = GovV3StorageHelpers.injectPayload(
+      vm,
+      IPayloadsControllerCore(payloadsController),
+      actions
+    );
+    GovV3StorageHelpers.readyPayloadId(vm, IPayloadsControllerCore(payloadsController), payloadId);
     return payloadId;
   }
 
@@ -874,6 +936,20 @@ library GovV3Helpers {
     bytes32 ipfsHash
   ) internal returns (uint256) {
     return _createProposal(vm, payloads, ipfsHash, votingPortal);
+  }
+
+  /**
+   * @dev method to get pool specific payloads controller.
+   *      useful for whitelabel instances where a chain can have different payloadsController based on the pool.
+   */
+  function getPayloadsController(
+    IPool pool,
+    uint256 chainId
+  ) internal pure returns (IPayloadsControllerCore) {
+    if (pool == AaveV3InkWhitelabel.POOL) {
+      return GovernanceV3InkWhitelabel.PERMISSIONED_PAYLOADS_CONTROLLER;
+    }
+    return getPayloadsController(chainId);
   }
 
   function getPayloadsController(uint256 chainId) internal pure returns (IPayloadsControllerCore) {
