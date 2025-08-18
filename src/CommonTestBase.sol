@@ -15,6 +15,7 @@ import {AaveV3ArbitrumAssets} from 'aave-address-book/AaveV3Arbitrum.sol';
 import {AaveV3GnosisAssets} from 'aave-address-book/AaveV3Gnosis.sol';
 import {AaveV3BaseAssets} from 'aave-address-book/AaveV3Base.sol';
 import {ChainIds} from 'solidity-utils/contracts/utils/ChainHelpers.sol';
+import {IPool} from 'aave-address-book/AaveV3.sol';
 import {GovV3Helpers} from './GovV3Helpers.sol';
 
 struct ReserveTokens {
@@ -32,6 +33,14 @@ contract CommonTestBase is Test {
 
   function executePayload(Vm vm, address payload) internal {
     GovV3Helpers.executePayload(vm, payload);
+  }
+
+  function executePayload(Vm vm, address payload, IPool pool) internal {
+    GovV3Helpers.executePayload(
+      vm,
+      payload,
+      address(GovV3Helpers.getPayloadsController(pool, block.chainid))
+    );
   }
 
   /**

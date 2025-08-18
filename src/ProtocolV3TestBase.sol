@@ -19,6 +19,8 @@ import {ExtendedAggregatorV2V3Interface} from './interfaces/ExtendedAggregatorV2
 import {CommonTestBase, ReserveTokens, ChainIds} from './CommonTestBase.sol';
 import {ILegacyDefaultInterestRateStrategy} from './dependencies/ILegacyDefaultInterestRateStrategy.sol';
 import {Strings} from 'openzeppelin-contracts/contracts/utils/Strings.sol';
+import {SeatbeltUtils} from './SeatbeltUtils.sol';
+import {GovV3Helpers} from './GovV3Helpers.sol';
 
 struct InterestStrategyValues {
   address addressesProvider;
@@ -35,7 +37,7 @@ struct InterestStrategyValues {
 /**
  * only applicable to harmony at this point
  */
-contract ProtocolV3TestBase is RawProtocolV3TestBase, CommonTestBase {
+contract ProtocolV3TestBase is RawProtocolV3TestBase, SeatbeltUtils, CommonTestBase {
   using ReserveConfiguration for DataTypes.ReserveConfigurationMap;
   using PercentageMath for uint256;
   using WadRayMath for uint256;
@@ -68,14 +70,15 @@ contract ProtocolV3TestBase is RawProtocolV3TestBase, CommonTestBase {
     IPool pool,
     address payload
   ) public returns (ReserveConfig[] memory, ReserveConfig[] memory) {
-    return defaultTest(reportName, pool, payload, true);
+    return defaultTest(reportName, pool, payload, true, false);
   }
 
   function defaultTest(
     string memory reportName,
     IPool pool,
     address payload,
-    bool runE2E
+    bool runE2E,
+    bool runSeatbelt
   ) public returns (ReserveConfig[] memory, ReserveConfig[] memory) {
     string memory beforeString = string(abi.encodePacked(reportName, '_before'));
     ReserveConfig[] memory configBefore = createConfigurationSnapshot(beforeString, pool);
@@ -83,7 +86,7 @@ contract ProtocolV3TestBase is RawProtocolV3TestBase, CommonTestBase {
     uint256 startGas = gasleft();
 
     vm.startStateDiffRecording();
-    executePayload(vm, payload);
+    executePayload(vm, payload, pool);
     string memory rawDiff = vm.getStateDiffJson();
 
     uint256 gasUsed = startGas - gasleft();
@@ -91,10 +94,19 @@ contract ProtocolV3TestBase is RawProtocolV3TestBase, CommonTestBase {
 
     string memory afterString = string(abi.encodePacked(reportName, '_after'));
     ReserveConfig[] memory configAfter = createConfigurationSnapshot(afterString, pool);
-    string memory output = vm.serializeString('root', 'raw', rawDiff);
-    vm.writeJson(output, string(abi.encodePacked('./reports/', afterString, '.json')));
+    vm.writeJson(
+      vm.serializeString('root', 'raw', rawDiff), // output
+      string(abi.encodePacked('./reports/', afterString, '.json'))
+    );
 
     diffReports(beforeString, afterString);
+    if (runSeatbelt) {
+      generateSeatbeltReport(
+        reportName,
+        address(GovV3Helpers.getPayloadsController(pool, block.chainid)),
+        payload.code
+      );
+    }
 
     configChangePlausibilityTest(configBefore, configAfter);
 
