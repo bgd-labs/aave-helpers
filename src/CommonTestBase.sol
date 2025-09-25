@@ -67,7 +67,7 @@ contract CommonTestBase is Test {
       }
       // SNX
       if (asset == AaveV2EthereumAssets.SNX_UNDERLYING) {
-        vm.prank(0x0D0452f487D1EDc869d1488ae984590ca2900D2F);
+        vm.prank(0x5Fd79D46EBA7F351fe49BFF9E87cdeA6c821eF9f);
         IERC20(asset).transfer(user, amount);
         return true;
       }
