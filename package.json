@@ -27,6 +27,6 @@
   },
   "dependencies": {
     "@bgd-labs/aave-cli": "^1.4.5",
-    "@bgd-labs/cli": "^0.0.56"
+    "@bgd-labs/cli": "^0.0.63"
   }
 }
