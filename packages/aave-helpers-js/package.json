@@ -21,6 +21,9 @@
     "url": "git+https://github.com/aave-dao/aave-helpers.git",
     "directory": "packages/aave-helpers-js"
   },
+  "engines": {
+    "node": ">=22"
+  },
   "files": [
     "dist"
   ],
