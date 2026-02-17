@@ -9,6 +9,8 @@ import {AaveV3Optimism, AaveV3OptimismAssets} from 'aave-address-book/AaveV3Opti
 import {AaveV3Arbitrum, AaveV3ArbitrumAssets} from 'aave-address-book/AaveV3Arbitrum.sol';
 import {AaveV3Avalanche, AaveV3AvalancheAssets} from 'aave-address-book/AaveV3Avalanche.sol';
 import {AaveV3Metis} from 'aave-address-book/AaveV3Metis.sol';
+import {AaveV3MegaEth} from 'aave-address-book/AaveV3MegaEth.sol';
+import {AaveV3Mantle} from 'aave-address-book/AaveV3Mantle.sol';
 import {AaveV3Fantom} from 'aave-address-book/AaveV3Fantom.sol';
 import {PayloadWithEmit} from './mocks/PayloadWithEmit.sol';
 
@@ -144,5 +146,37 @@ contract ProtocolV3TestOptimismSnapshot is ProtocolV3TestBase {
 
   function test_snapshotState() public {
     createConfigurationSnapshot('snapshot', AaveV3Optimism.POOL, true, false, false, false);
+  }
+}
+
+contract ProtocolV3TestMegaEthSnapshot is ProtocolV3TestBase {
+  function setUp() public {
+    vm.createSelectFork('megaeth', 7862955);
+  }
+
+  function test_snapshotState() public {
+    defaultTest(
+      'megaeth',
+      AaveV3MegaEth.POOL,
+      0x3a0A755D940283cD96D69F88645BeaA2bAfBC0bb,
+      false,
+      false
+    );
+  }
+}
+
+contract ProtocolV3TestMantleSnapshot is ProtocolV3TestBase {
+  function setUp() public {
+    vm.createSelectFork('mantle', 91335553);
+  }
+
+  function test_snapshotState() public {
+    defaultTest(
+      'mantle',
+      AaveV3Mantle.POOL,
+      0x6F5b52c16886775395129dB05117D65420863250,
+      false,
+      false
+    );
   }
 }
