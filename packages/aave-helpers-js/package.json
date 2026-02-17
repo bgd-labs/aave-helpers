@@ -16,6 +16,11 @@
   "bin": {
     "aave-helpers-js": "dist/cli.mjs"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/aave-dao/aave-helpers.git",
+    "directory": "packages/aave-helpers-js"
+  },
   "files": [
     "dist"
   ],
