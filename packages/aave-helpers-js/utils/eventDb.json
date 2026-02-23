@@ -1186,6 +1186,145 @@
   },
   {
     "type": "event",
+    "name": "AgentRegistered",
+    "inputs": [
+      { "name": "agentId", "type": "uint256", "indexed": true, "internalType": "uint256" },
+      { "name": "riskOracle", "type": "address", "indexed": true, "internalType": "address" },
+      { "name": "updateType", "type": "string", "indexed": true, "internalType": "string" }
+    ]
+  },
+  {
+    "type": "event",
+    "name": "AgentAdminSet",
+    "inputs": [
+      { "name": "agentId", "type": "uint256", "indexed": true, "internalType": "uint256" },
+      { "name": "admin", "type": "address", "indexed": true, "internalType": "address" }
+    ]
+  },
+  {
+    "type": "event",
+    "name": "MaxBatchSizeSet",
+    "inputs": [
+      { "name": "maxBatchSize", "type": "uint256", "indexed": true, "internalType": "uint256" }
+    ]
+  },
+  {
+    "type": "event",
+    "name": "AgentAddressSet",
+    "inputs": [
+      { "name": "agentId", "type": "uint256", "indexed": true, "internalType": "uint256" },
+      { "name": "agentAddress", "type": "address", "indexed": true, "internalType": "address" }
+    ]
+  },
+  {
+    "type": "event",
+    "name": "AgentPermissionedStatusSet",
+    "inputs": [
+      { "name": "agentId", "type": "uint256", "indexed": true, "internalType": "uint256" },
+      { "name": "isAgentPermissioned", "type": "bool", "indexed": true, "internalType": "bool" }
+    ]
+  },
+  {
+    "type": "event",
+    "name": "PermissionedSenderAdded",
+    "inputs": [
+      { "name": "agentId", "type": "uint256", "indexed": true, "internalType": "uint256" },
+      { "name": "sender", "type": "address", "indexed": true, "internalType": "address" }
+    ]
+  },
+  {
+    "type": "event",
+    "name": "PermissionedSenderRemoved",
+    "inputs": [
+      { "name": "agentId", "type": "uint256", "indexed": true, "internalType": "uint256" },
+      { "name": "sender", "type": "address", "indexed": true, "internalType": "address" }
+    ]
+  },
+  {
+    "type": "event",
+    "name": "AllowedMarketAdded",
+    "inputs": [
+      { "name": "agentId", "type": "uint256", "indexed": true, "internalType": "uint256" },
+      { "name": "market", "type": "address", "indexed": true, "internalType": "address" }
+    ]
+  },
+  {
+    "type": "event",
+    "name": "AllowedMarketRemoved",
+    "inputs": [
+      { "name": "agentId", "type": "uint256", "indexed": true, "internalType": "uint256" },
+      { "name": "market", "type": "address", "indexed": true, "internalType": "address" }
+    ]
+  },
+  {
+    "type": "event",
+    "name": "RestrictedMarketAdded",
+    "inputs": [
+      { "name": "agentId", "type": "uint256", "indexed": true, "internalType": "uint256" },
+      { "name": "market", "type": "address", "indexed": true, "internalType": "address" }
+    ]
+  },
+  {
+    "type": "event",
+    "name": "RestrictedMarketRemoved",
+    "inputs": [
+      { "name": "agentId", "type": "uint256", "indexed": true, "internalType": "uint256" },
+      { "name": "market", "type": "address", "indexed": true, "internalType": "address" }
+    ]
+  },
+  {
+    "type": "event",
+    "name": "ExpirationPeriodSet",
+    "inputs": [
+      { "name": "agentId", "type": "uint256", "indexed": true, "internalType": "uint256" },
+      { "name": "expirationPeriod", "type": "uint256", "indexed": true, "internalType": "uint256" }
+    ]
+  },
+  {
+    "type": "event",
+    "name": "AgentEnabledSet",
+    "inputs": [
+      { "name": "agentId", "type": "uint256", "indexed": true, "internalType": "uint256" },
+      { "name": "enable", "type": "bool", "indexed": true, "internalType": "bool" }
+    ]
+  },
+  {
+    "type": "event",
+    "name": "MinimumDelaySet",
+    "inputs": [
+      { "name": "agentId", "type": "uint256", "indexed": true, "internalType": "uint256" },
+      { "name": "minimumDelay", "type": "uint256", "indexed": true, "internalType": "uint256" }
+    ]
+  },
+  {
+    "type": "event",
+    "name": "AgentContextSet",
+    "inputs": [
+      { "name": "agentId", "type": "uint256", "indexed": true, "internalType": "uint256" },
+      { "name": "context", "type": "bytes", "indexed": true, "internalType": "bytes" }
+    ]
+  },
+  {
+    "type": "event",
+    "name": "MarketsFromAgentEnabled",
+    "inputs": [
+      { "name": "agentId", "type": "uint256", "indexed": true, "internalType": "uint256" },
+      { "name": "enabled", "type": "bool", "indexed": true, "internalType": "bool" }
+    ]
+  },
+  {
+    "type": "event",
+    "name": "UpdateInjected",
+    "inputs": [
+      { "name": "agentId", "type": "uint256", "indexed": true, "internalType": "uint256" },
+      { "name": "market", "type": "address", "indexed": true, "internalType": "address" },
+      { "name": "updateType", "type": "string", "indexed": true, "internalType": "string" },
+      { "name": "updateId", "type": "uint256", "indexed": false, "internalType": "uint256" },
+      { "name": "newValue", "type": "bytes", "indexed": false, "internalType": "bytes" }
+    ]
+  },
+  {
+    "type": "event",
     "name": "EmissionAdminUpdated",
     "inputs": [
       {
