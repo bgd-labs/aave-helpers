@@ -4,6 +4,7 @@ import { resolve } from 'path';
 import { diffSnapshots } from '../protocol-diff';
 import { diff, isChange, hasChanges } from '../diff';
 import { formatValue, type FormatterContext } from '../formatters';
+import { renderLogsSection } from '../sections/logs';
 
 const before = JSON.parse(
   readFileSync(resolve(__dirname, '../../../reports/default_before.json'), 'utf-8')
@@ -1809,5 +1810,301 @@ describe('diffSnapshots', () => {
       \`\`\`
       "
     `);
+  });
+});
+
+// Topic hashes for IAgentConfigurator events (keccak256 of signature)
+const AGENT_REGISTERED = '0x0d063c6022bff16d09991a9f91882ffa112f5fb2529136f65eb4c77bbd047e43';
+const AGENT_ADDRESS_SET = '0x49ae5a2f9400fc9a6874ec8e69cf4dcb82883d824c93388271dca846098e8bfe';
+const AGENT_ADMIN_SET = '0xd61d2421c5bb057269066046ce93b137bb1df44332310530dec71fca964485b4';
+const AGENT_ENABLED_SET = '0x2d687e7e18d7d5e9fccf01f905bb15b7a6521a83eea31080b430fe99a82c3d82';
+const AGENT_PERMISSIONED_STATUS_SET =
+  '0xfb39cc5d87e3067ba835813b35ed2181005ece073d76c7cbbdb4779b7a6446ed';
+const MARKETS_FROM_AGENT_ENABLED =
+  '0x50cdda6e37491918e4a5f7941910c68aa643a311610f9dd213f6d2955a246c0a';
+const EXPIRATION_PERIOD_SET = '0x6a8e901a014ecaeac1bf64b55f5cf50d9988250d9f33a56f9b694971592ade43';
+const MINIMUM_DELAY_SET = '0x272ec2b5975364e003ffa08930bbafc77472bc7fc2c2b078bf9a09997de6632f';
+const AGENT_CONTEXT_SET = '0x62628638a1817b830bc3c14382a2f4df99a461cee4408e978bb6aaaab6a1b036';
+const ALLOWED_MARKET_ADDED = '0x2fc0d54cb5ab2406eb24b175bf09b6fff1268acd21ac14c7e3422146a60bb37e';
+const ALLOWED_MARKET_REMOVED = '0x65bb60f6360137104c7b1d036ac5e53273c9da5662306bae223c1f8942a01bcd';
+const RESTRICTED_MARKET_ADDED = '0xa32f8d38bd6f79b28a99f671eafa0d6c7d9ed79a92c6fbf9433124f335b39b84';
+const RESTRICTED_MARKET_REMOVED =
+  '0x9fdc8893bd7bb12c1431f72399b7caf70867c7c68b1da755533287dd68c4f1dc';
+const PERMISSIONED_SENDER_ADDED =
+  '0x0040935b7c4188ff3d4b804d38d3008c9cd5fb141b3b3453904a76cfae835d54';
+const PERMISSIONED_SENDER_REMOVED =
+  '0xefd1a368b568dd579ddf460ad65587bdc6ed7797375b82f559c40901f1f3ad36';
+const MAX_BATCH_SIZE_SET = '0x41122ae347d086d4eca255208d465d964ae84c71bc0dd28e1d2be5861d966e0b';
+const UPDATE_INJECTED = '0x3b5f9b036a0fa1bd3e6bda204322458c0667dcc37bbcc038d0903e57e8a058be';
+
+// Padded values reused across tests
+const AGENT_ID_0 = '0x0000000000000000000000000000000000000000000000000000000000000000';
+const AGENT_ID_1 = '0x0000000000000000000000000000000000000000000000000000000000000001';
+const RISK_ORACLE = '0x0000000000000000000000002e4d168044b4532b4182dc00434498082e13e0bf';
+const AGENT_ADDRESS = '0x000000000000000000000000a2430ab7ac492d70c2bd4ea83feaf6f8af3e165c';
+const ADMIN_ADDRESS = '0x0000000000000000000000001df462e2712496373a347f8ad10802a5e95f053d';
+const MARKET_ADDRESS = '0x0000000000000000000000004200000000000000000000000000000000000006';
+const SENDER_ADDRESS = '0x000000000000000000000000050e8fc96dd6c1ba971e3633c0b340680043661e';
+const BOOL_TRUE = '0x0000000000000000000000000000000000000000000000000000000000000001';
+const BOOL_FALSE = '0x0000000000000000000000000000000000000000000000000000000000000000';
+const VALUE_1000 = '0x00000000000000000000000000000000000000000000000000000000000003e8';
+const VALUE_255 = '0x00000000000000000000000000000000000000000000000000000000000000ff';
+const UPDATE_TYPE_HASH = '0xa2a23724fc9bbd60f7d28de9b7010ef0fc522d17af97a644153b859501877e51';
+const CONTEXT_HASH = '0x20fb6752da6295cc7038ee3d686e0cc48f953d7463d6801aa3902ce2e84811f0';
+
+const AGENT_HUB = '0x17781Ba226b359e5C1E1ee5ac9E28Ec5b84fd039';
+// Ink chain id
+const INK_CHAIN_ID = 57073;
+
+describe('renderLogsSection - IAgentConfigurator events', () => {
+  it('decodes AgentRegistered', async () => {
+    const result = await renderLogsSection(
+      [
+        {
+          emitter: AGENT_HUB,
+          topics: [AGENT_REGISTERED, AGENT_ID_0, RISK_ORACLE, UPDATE_TYPE_HASH],
+          data: '0x',
+        },
+      ],
+      INK_CHAIN_ID
+    );
+    expect(result).toContain('AgentRegistered(');
+    expect(result).not.toContain('topics:');
+  });
+
+  it('decodes AgentAddressSet', async () => {
+    const result = await renderLogsSection(
+      [{ emitter: AGENT_HUB, topics: [AGENT_ADDRESS_SET, AGENT_ID_0, AGENT_ADDRESS], data: '0x' }],
+      INK_CHAIN_ID
+    );
+    expect(result).toContain('AgentAddressSet(');
+    expect(result).not.toContain('topics:');
+  });
+
+  it('decodes AgentAdminSet', async () => {
+    const result = await renderLogsSection(
+      [{ emitter: AGENT_HUB, topics: [AGENT_ADMIN_SET, AGENT_ID_0, ADMIN_ADDRESS], data: '0x' }],
+      INK_CHAIN_ID
+    );
+    expect(result).toContain('AgentAdminSet(');
+    expect(result).not.toContain('topics:');
+  });
+
+  it('decodes AgentEnabledSet', async () => {
+    const result = await renderLogsSection(
+      [{ emitter: AGENT_HUB, topics: [AGENT_ENABLED_SET, AGENT_ID_0, BOOL_TRUE], data: '0x' }],
+      INK_CHAIN_ID
+    );
+    expect(result).toContain('AgentEnabledSet(');
+    expect(result).not.toContain('topics:');
+  });
+
+  it('decodes AgentPermissionedStatusSet', async () => {
+    const result = await renderLogsSection(
+      [
+        {
+          emitter: AGENT_HUB,
+          topics: [AGENT_PERMISSIONED_STATUS_SET, AGENT_ID_0, BOOL_FALSE],
+          data: '0x',
+        },
+      ],
+      INK_CHAIN_ID
+    );
+    expect(result).toContain('AgentPermissionedStatusSet(');
+    expect(result).not.toContain('topics:');
+  });
+
+  it('decodes MarketsFromAgentEnabled', async () => {
+    const result = await renderLogsSection(
+      [
+        {
+          emitter: AGENT_HUB,
+          topics: [MARKETS_FROM_AGENT_ENABLED, AGENT_ID_0, BOOL_TRUE],
+          data: '0x',
+        },
+      ],
+      INK_CHAIN_ID
+    );
+    expect(result).toContain('MarketsFromAgentEnabled(');
+    expect(result).not.toContain('topics:');
+  });
+
+  it('decodes ExpirationPeriodSet', async () => {
+    const result = await renderLogsSection(
+      [
+        {
+          emitter: AGENT_HUB,
+          topics: [EXPIRATION_PERIOD_SET, AGENT_ID_0, VALUE_1000],
+          data: '0x',
+        },
+      ],
+      INK_CHAIN_ID
+    );
+    expect(result).toContain('ExpirationPeriodSet(');
+    expect(result).not.toContain('topics:');
+  });
+
+  it('decodes MinimumDelaySet', async () => {
+    const result = await renderLogsSection(
+      [{ emitter: AGENT_HUB, topics: [MINIMUM_DELAY_SET, AGENT_ID_0, VALUE_1000], data: '0x' }],
+      INK_CHAIN_ID
+    );
+    expect(result).toContain('MinimumDelaySet(');
+    expect(result).not.toContain('topics:');
+  });
+
+  it('decodes AgentContextSet', async () => {
+    const result = await renderLogsSection(
+      [{ emitter: AGENT_HUB, topics: [AGENT_CONTEXT_SET, AGENT_ID_0, CONTEXT_HASH], data: '0x' }],
+      INK_CHAIN_ID
+    );
+    expect(result).toContain('AgentContextSet(');
+    expect(result).not.toContain('topics:');
+  });
+
+  it('decodes AllowedMarketAdded', async () => {
+    const result = await renderLogsSection(
+      [
+        {
+          emitter: AGENT_HUB,
+          topics: [ALLOWED_MARKET_ADDED, AGENT_ID_0, MARKET_ADDRESS],
+          data: '0x',
+        },
+      ],
+      INK_CHAIN_ID
+    );
+    expect(result).toContain('AllowedMarketAdded(');
+    expect(result).not.toContain('topics:');
+  });
+
+  it('decodes AllowedMarketRemoved', async () => {
+    const result = await renderLogsSection(
+      [
+        {
+          emitter: AGENT_HUB,
+          topics: [ALLOWED_MARKET_REMOVED, AGENT_ID_0, MARKET_ADDRESS],
+          data: '0x',
+        },
+      ],
+      INK_CHAIN_ID
+    );
+    expect(result).toContain('AllowedMarketRemoved(');
+    expect(result).not.toContain('topics:');
+  });
+
+  it('decodes RestrictedMarketAdded', async () => {
+    const result = await renderLogsSection(
+      [
+        {
+          emitter: AGENT_HUB,
+          topics: [RESTRICTED_MARKET_ADDED, AGENT_ID_0, MARKET_ADDRESS],
+          data: '0x',
+        },
+      ],
+      INK_CHAIN_ID
+    );
+    expect(result).toContain('RestrictedMarketAdded(');
+    expect(result).not.toContain('topics:');
+  });
+
+  it('decodes RestrictedMarketRemoved', async () => {
+    const result = await renderLogsSection(
+      [
+        {
+          emitter: AGENT_HUB,
+          topics: [RESTRICTED_MARKET_REMOVED, AGENT_ID_0, MARKET_ADDRESS],
+          data: '0x',
+        },
+      ],
+      INK_CHAIN_ID
+    );
+    expect(result).toContain('RestrictedMarketRemoved(');
+    expect(result).not.toContain('topics:');
+  });
+
+  it('decodes PermissionedSenderAdded', async () => {
+    const result = await renderLogsSection(
+      [
+        {
+          emitter: AGENT_HUB,
+          topics: [PERMISSIONED_SENDER_ADDED, AGENT_ID_0, SENDER_ADDRESS],
+          data: '0x',
+        },
+      ],
+      INK_CHAIN_ID
+    );
+    expect(result).toContain('PermissionedSenderAdded(');
+    expect(result).not.toContain('topics:');
+  });
+
+  it('decodes PermissionedSenderRemoved', async () => {
+    const result = await renderLogsSection(
+      [
+        {
+          emitter: AGENT_HUB,
+          topics: [PERMISSIONED_SENDER_REMOVED, AGENT_ID_0, SENDER_ADDRESS],
+          data: '0x',
+        },
+      ],
+      INK_CHAIN_ID
+    );
+    expect(result).toContain('PermissionedSenderRemoved(');
+    expect(result).not.toContain('topics:');
+  });
+
+  it('decodes MaxBatchSizeSet', async () => {
+    const result = await renderLogsSection(
+      [{ emitter: AGENT_HUB, topics: [MAX_BATCH_SIZE_SET, VALUE_255], data: '0x' }],
+      INK_CHAIN_ID
+    );
+    expect(result).toContain('MaxBatchSizeSet(');
+    expect(result).not.toContain('topics:');
+  });
+
+  it('decodes UpdateInjected', async () => {
+    const result = await renderLogsSection(
+      [
+        {
+          emitter: AGENT_HUB,
+          topics: [UPDATE_INJECTED, AGENT_ID_1, MARKET_ADDRESS, UPDATE_TYPE_HASH],
+          data:
+            '0x' +
+            '0000000000000000000000000000000000000000000000000000000000000001' + // updateId
+            '0000000000000000000000000000000000000000000000000000000000000040' + // offset for newValue bytes
+            '0000000000000000000000000000000000000000000000000000000000000004' + // length of newValue
+            '0000000000000000000000000000000000000000000000000000000000000000', // newValue padded
+        },
+      ],
+      INK_CHAIN_ID
+    );
+    expect(result).toContain('UpdateInjected(');
+    expect(result).not.toContain('topics:');
+  });
+
+  it('decodes all agent hub events in a single batch', async () => {
+    const logs = [
+      { emitter: AGENT_HUB, topics: [AGENT_REGISTERED, AGENT_ID_0, RISK_ORACLE, UPDATE_TYPE_HASH], data: '0x' },
+      { emitter: AGENT_HUB, topics: [AGENT_ADDRESS_SET, AGENT_ID_0, AGENT_ADDRESS], data: '0x' },
+      { emitter: AGENT_HUB, topics: [AGENT_ADMIN_SET, AGENT_ID_0, ADMIN_ADDRESS], data: '0x' },
+      { emitter: AGENT_HUB, topics: [AGENT_ENABLED_SET, AGENT_ID_0, BOOL_TRUE], data: '0x' },
+      { emitter: AGENT_HUB, topics: [AGENT_PERMISSIONED_STATUS_SET, AGENT_ID_0, BOOL_FALSE], data: '0x' },
+      { emitter: AGENT_HUB, topics: [MARKETS_FROM_AGENT_ENABLED, AGENT_ID_0, BOOL_TRUE], data: '0x' },
+      { emitter: AGENT_HUB, topics: [EXPIRATION_PERIOD_SET, AGENT_ID_0, VALUE_1000], data: '0x' },
+      { emitter: AGENT_HUB, topics: [MINIMUM_DELAY_SET, AGENT_ID_0, VALUE_1000], data: '0x' },
+      { emitter: AGENT_HUB, topics: [AGENT_CONTEXT_SET, AGENT_ID_0, CONTEXT_HASH], data: '0x' },
+      { emitter: AGENT_HUB, topics: [ALLOWED_MARKET_ADDED, AGENT_ID_0, MARKET_ADDRESS], data: '0x' },
+    ];
+    const result = await renderLogsSection(logs, INK_CHAIN_ID);
+    expect(result).toContain('AgentRegistered(');
+    expect(result).toContain('AgentAddressSet(');
+    expect(result).toContain('AgentAdminSet(');
+    expect(result).toContain('AgentEnabledSet(');
+    expect(result).toContain('AgentPermissionedStatusSet(');
+    expect(result).toContain('MarketsFromAgentEnabled(');
+    expect(result).toContain('ExpirationPeriodSet(');
+    expect(result).toContain('MinimumDelaySet(');
+    expect(result).toContain('AgentContextSet(');
+    expect(result).toContain('AllowedMarketAdded(');
+    expect(result).not.toContain('topics:');
   });
 });
