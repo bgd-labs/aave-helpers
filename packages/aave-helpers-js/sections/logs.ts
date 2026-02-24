@@ -87,6 +87,11 @@ function formatValue(v: unknown): string {
   if (typeof v === 'string') return v;
   if (typeof v === 'boolean') return String(v);
   if (Array.isArray(v)) return `[${v.map(formatValue).join(', ')}]`;
-  if (typeof v === 'object' && v !== null) return JSON.stringify(v);
+  if (typeof v === 'object' && v !== null) {
+    const entries = Object.entries(v)
+      .map(([k, val]) => `${k}: ${formatValue(val)}`)
+      .join(', ');
+    return `{${entries}}`;
+  }
   return String(v);
 }

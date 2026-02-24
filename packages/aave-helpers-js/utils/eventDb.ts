@@ -1348,5 +1348,48 @@ export const eventDb: AbiEvent[] = [
         "internalType": "address"
       }
     ]
+  },
+  {
+    "type": "event",
+    "name": "DefaultRangeConfigSet",
+    "inputs": [
+      { "name": "agentHub", "type": "address", "indexed": true, "internalType": "address" },
+      { "name": "agentId", "type": "uint256", "indexed": true, "internalType": "uint256" },
+      { "name": "updateType", "type": "string", "indexed": true, "internalType": "string" },
+      {
+        "name": "config",
+        "type": "tuple",
+        "indexed": false,
+        "internalType": "struct IRangeValidationModule.RangeConfig",
+        "components": [
+          { "name": "maxIncrease", "type": "uint120", "internalType": "uint120" },
+          { "name": "maxDecrease", "type": "uint120", "internalType": "uint120" },
+          { "name": "isIncreaseRelative", "type": "bool", "internalType": "bool" },
+          { "name": "isDecreaseRelative", "type": "bool", "internalType": "bool" }
+        ]
+      }
+    ]
+  },
+  {
+    "type": "event",
+    "name": "MarketRangeConfigSet",
+    "inputs": [
+      { "name": "agentHub", "type": "address", "indexed": true, "internalType": "address" },
+      { "name": "agentId", "type": "uint256", "indexed": true, "internalType": "uint256" },
+      { "name": "market", "type": "address", "indexed": true, "internalType": "address" },
+      { "name": "updateType", "type": "string", "indexed": false, "internalType": "string" },
+      {
+        "name": "config",
+        "type": "tuple",
+        "indexed": false,
+        "internalType": "struct IRangeValidationModule.RangeConfig",
+        "components": [
+          { "name": "maxIncrease", "type": "uint120", "internalType": "uint120" },
+          { "name": "maxDecrease", "type": "uint120", "internalType": "uint120" },
+          { "name": "isIncreaseRelative", "type": "bool", "internalType": "bool" },
+          { "name": "isDecreaseRelative", "type": "bool", "internalType": "bool" }
+        ]
+      }
+    ]
   }
 ];

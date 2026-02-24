@@ -2108,3 +2108,65 @@ describe('renderLogsSection - IAgentConfigurator events', () => {
     expect(result).not.toContain('topics:');
   });
 });
+
+const DEFAULT_RANGE_CONFIG_SET =
+  '0xd277e912eff2e23b18786458bede5c399d8f47442262dc054ddf0f6462b5afaf';
+const MARKET_RANGE_CONFIG_SET =
+  '0x4666070bf03e7e4884898dfcc3348243da2fda61acc197ce66d0a3da1b60d793';
+
+const RANGE_VALIDATION_MODULE = '0xd24790E75799968CE3feD6E27285baD0a26e7e36';
+const AGENT_HUB_PADDED =
+  '0x00000000000000000000000017781ba226b359e5c1e1ee5ac9e28ec5b84fd039';
+// ABI-encoded RangeConfig(maxIncrease=3000, maxDecrease=3000, isIncreaseRelative=false, isDecreaseRelative=false)
+const RANGE_CONFIG_DATA =
+  '0x' +
+  '0000000000000000000000000000000000000000000000000000000000000bb8' + // maxIncrease = 3000
+  '0000000000000000000000000000000000000000000000000000000000000bb8' + // maxDecrease = 3000
+  '0000000000000000000000000000000000000000000000000000000000000000' + // isIncreaseRelative = false
+  '0000000000000000000000000000000000000000000000000000000000000000'; // isDecreaseRelative = false
+
+// ABI-encoded (string updateType, RangeConfig config) for MarketRangeConfigSet
+// RangeConfig is a static tuple, so its fields are encoded inline in the head.
+// Head: [offset_to_string(5*32=160), maxIncrease, maxDecrease, isIncreaseRelative, isDecreaseRelative]
+// Tail: [string_length, string_data]
+const MARKET_RANGE_CONFIG_DATA =
+  '0x' +
+  '00000000000000000000000000000000000000000000000000000000000000a0' + // offset to string = 5*32 = 160
+  '0000000000000000000000000000000000000000000000000000000000000bb8' + // maxIncrease = 3000
+  '0000000000000000000000000000000000000000000000000000000000000bb8' + // maxDecrease = 3000
+  '0000000000000000000000000000000000000000000000000000000000000000' + // isIncreaseRelative = false
+  '0000000000000000000000000000000000000000000000000000000000000000' + // isDecreaseRelative = false
+  '0000000000000000000000000000000000000000000000000000000000000012' + // length of "RateStrategyUpdate" = 18
+  '5261746553747261746567795570646174650000000000000000000000000000'; // "RateStrategyUpdate" padded
+
+describe('renderLogsSection - IRangeValidationModule events', () => {
+  it('decodes DefaultRangeConfigSet', async () => {
+    const result = await renderLogsSection(
+      [
+        {
+          emitter: RANGE_VALIDATION_MODULE,
+          topics: [DEFAULT_RANGE_CONFIG_SET, AGENT_HUB_PADDED, AGENT_ID_0, UPDATE_TYPE_HASH],
+          data: RANGE_CONFIG_DATA,
+        },
+      ],
+      INK_CHAIN_ID
+    );
+    expect(result).toContain('DefaultRangeConfigSet(');
+    expect(result).not.toContain('topics:');
+  });
+
+  it('decodes MarketRangeConfigSet', async () => {
+    const result = await renderLogsSection(
+      [
+        {
+          emitter: RANGE_VALIDATION_MODULE,
+          topics: [MARKET_RANGE_CONFIG_SET, AGENT_HUB_PADDED, AGENT_ID_0, MARKET_ADDRESS],
+          data: MARKET_RANGE_CONFIG_DATA,
+        },
+      ],
+      INK_CHAIN_ID
+    );
+    expect(result).toContain('MarketRangeConfigSet(');
+    expect(result).not.toContain('topics:');
+  });
+});
