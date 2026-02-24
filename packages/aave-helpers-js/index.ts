@@ -1,4 +1,5 @@
 export { diffSnapshots } from './protocol-diff';
+export { eventDb } from './utils/eventDb';
 export { diff, isChange, hasChanges } from './diff';
 export type { Change, DiffResult } from './diff';
 export type {
