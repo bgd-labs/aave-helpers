@@ -2,7 +2,7 @@ import type { Log, CHAIN_ID } from '../snapshot-types';
 import type { Abi, Hex, Address } from 'viem';
 import { parseLogs, enhanceLogs, getClient } from '@bgd-labs/toolbox';
 import { isKnownAddress } from '../utils/address';
-import eventDb from '../utils/eventDb.json';
+import { eventDb } from '../utils/eventDb';
 
 export async function renderLogsSection(
   logs: Log[] | undefined,

@@ -1,4 +1,6 @@
-[
+import type { AbiEvent } from 'viem';
+
+export const eventDb: AbiEvent[] = [
   {
     "anonymous": false,
     "inputs": [
@@ -1347,4 +1349,4 @@
       }
     ]
   }
-]
+];
