@@ -1827,7 +1827,8 @@ const MINIMUM_DELAY_SET = '0x272ec2b5975364e003ffa08930bbafc77472bc7fc2c2b078bf9
 const AGENT_CONTEXT_SET = '0x62628638a1817b830bc3c14382a2f4df99a461cee4408e978bb6aaaab6a1b036';
 const ALLOWED_MARKET_ADDED = '0x2fc0d54cb5ab2406eb24b175bf09b6fff1268acd21ac14c7e3422146a60bb37e';
 const ALLOWED_MARKET_REMOVED = '0x65bb60f6360137104c7b1d036ac5e53273c9da5662306bae223c1f8942a01bcd';
-const RESTRICTED_MARKET_ADDED = '0xa32f8d38bd6f79b28a99f671eafa0d6c7d9ed79a92c6fbf9433124f335b39b84';
+const RESTRICTED_MARKET_ADDED =
+  '0xa32f8d38bd6f79b28a99f671eafa0d6c7d9ed79a92c6fbf9433124f335b39b84';
 const RESTRICTED_MARKET_REMOVED =
   '0x9fdc8893bd7bb12c1431f72399b7caf70867c7c68b1da755533287dd68c4f1dc';
 const PERMISSIONED_SENDER_ADDED =
@@ -2083,16 +2084,32 @@ describe('renderLogsSection - IAgentConfigurator events', () => {
 
   it('decodes all agent hub events in a single batch', async () => {
     const logs = [
-      { emitter: AGENT_HUB, topics: [AGENT_REGISTERED, AGENT_ID_0, RISK_ORACLE, UPDATE_TYPE_HASH], data: '0x' },
+      {
+        emitter: AGENT_HUB,
+        topics: [AGENT_REGISTERED, AGENT_ID_0, RISK_ORACLE, UPDATE_TYPE_HASH],
+        data: '0x',
+      },
       { emitter: AGENT_HUB, topics: [AGENT_ADDRESS_SET, AGENT_ID_0, AGENT_ADDRESS], data: '0x' },
       { emitter: AGENT_HUB, topics: [AGENT_ADMIN_SET, AGENT_ID_0, ADMIN_ADDRESS], data: '0x' },
       { emitter: AGENT_HUB, topics: [AGENT_ENABLED_SET, AGENT_ID_0, BOOL_TRUE], data: '0x' },
-      { emitter: AGENT_HUB, topics: [AGENT_PERMISSIONED_STATUS_SET, AGENT_ID_0, BOOL_FALSE], data: '0x' },
-      { emitter: AGENT_HUB, topics: [MARKETS_FROM_AGENT_ENABLED, AGENT_ID_0, BOOL_TRUE], data: '0x' },
+      {
+        emitter: AGENT_HUB,
+        topics: [AGENT_PERMISSIONED_STATUS_SET, AGENT_ID_0, BOOL_FALSE],
+        data: '0x',
+      },
+      {
+        emitter: AGENT_HUB,
+        topics: [MARKETS_FROM_AGENT_ENABLED, AGENT_ID_0, BOOL_TRUE],
+        data: '0x',
+      },
       { emitter: AGENT_HUB, topics: [EXPIRATION_PERIOD_SET, AGENT_ID_0, VALUE_1000], data: '0x' },
       { emitter: AGENT_HUB, topics: [MINIMUM_DELAY_SET, AGENT_ID_0, VALUE_1000], data: '0x' },
       { emitter: AGENT_HUB, topics: [AGENT_CONTEXT_SET, AGENT_ID_0, CONTEXT_HASH], data: '0x' },
-      { emitter: AGENT_HUB, topics: [ALLOWED_MARKET_ADDED, AGENT_ID_0, MARKET_ADDRESS], data: '0x' },
+      {
+        emitter: AGENT_HUB,
+        topics: [ALLOWED_MARKET_ADDED, AGENT_ID_0, MARKET_ADDRESS],
+        data: '0x',
+      },
     ];
     const result = await renderLogsSection(logs, INK_CHAIN_ID);
     expect(result).toContain('AgentRegistered(');
@@ -2115,8 +2132,7 @@ const MARKET_RANGE_CONFIG_SET =
   '0x4666070bf03e7e4884898dfcc3348243da2fda61acc197ce66d0a3da1b60d793';
 
 const RANGE_VALIDATION_MODULE = '0xd24790E75799968CE3feD6E27285baD0a26e7e36';
-const AGENT_HUB_PADDED =
-  '0x00000000000000000000000017781ba226b359e5c1e1ee5ac9e28ec5b84fd039';
+const AGENT_HUB_PADDED = '0x00000000000000000000000017781ba226b359e5c1e1ee5ac9e28ec5b84fd039';
 // ABI-encoded RangeConfig(maxIncrease=3000, maxDecrease=3000, isIncreaseRelative=false, isDecreaseRelative=false)
 const RANGE_CONFIG_DATA =
   '0x' +

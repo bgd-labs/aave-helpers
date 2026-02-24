@@ -2,1394 +2,1392 @@ import type { AbiEvent } from 'viem';
 
 export const eventDb: AbiEvent[] = [
   {
-    "anonymous": false,
-    "inputs": [
-      { "indexed": true, "internalType": "address", "name": "previousOwner", "type": "address" },
-      { "indexed": true, "internalType": "address", "name": "newOwner", "type": "address" }
+    anonymous: false,
+    inputs: [
+      { indexed: true, internalType: 'address', name: 'previousOwner', type: 'address' },
+      { indexed: true, internalType: 'address', name: 'newOwner', type: 'address' },
     ],
-    "name": "OwnershipTransferred",
-    "type": "event"
+    name: 'OwnershipTransferred',
+    type: 'event',
   },
   {
-    "type": "event",
-    "name": "RoleGranted",
-    "inputs": [
+    type: 'event',
+    name: 'RoleGranted',
+    inputs: [
       {
-        "name": "role",
-        "type": "bytes32",
-        "indexed": true,
-        "internalType": "bytes32"
+        name: 'role',
+        type: 'bytes32',
+        indexed: true,
+        internalType: 'bytes32',
       },
       {
-        "name": "account",
-        "type": "address",
-        "indexed": true,
-        "internalType": "address"
+        name: 'account',
+        type: 'address',
+        indexed: true,
+        internalType: 'address',
       },
       {
-        "name": "sender",
-        "type": "address",
-        "indexed": true,
-        "internalType": "address"
-      }
-    ]
+        name: 'sender',
+        type: 'address',
+        indexed: true,
+        internalType: 'address',
+      },
+    ],
   },
   {
-    "type": "event",
-    "name": "Approval",
-    "inputs": [
+    type: 'event',
+    name: 'Approval',
+    inputs: [
       {
-        "name": "owner",
-        "type": "address",
-        "indexed": true,
-        "internalType": "address"
+        name: 'owner',
+        type: 'address',
+        indexed: true,
+        internalType: 'address',
       },
       {
-        "name": "spender",
-        "type": "address",
-        "indexed": true,
-        "internalType": "address"
+        name: 'spender',
+        type: 'address',
+        indexed: true,
+        internalType: 'address',
       },
       {
-        "name": "value",
-        "type": "uint256",
-        "indexed": false,
-        "internalType": "uint256"
-      }
-    ]
+        name: 'value',
+        type: 'uint256',
+        indexed: false,
+        internalType: 'uint256',
+      },
+    ],
   },
   {
-    "type": "event",
-    "name": "Transfer",
-    "inputs": [
+    type: 'event',
+    name: 'Transfer',
+    inputs: [
       {
-        "name": "from",
-        "type": "address",
-        "indexed": true,
-        "internalType": "address"
+        name: 'from',
+        type: 'address',
+        indexed: true,
+        internalType: 'address',
       },
       {
-        "name": "to",
-        "type": "address",
-        "indexed": true,
-        "internalType": "address"
+        name: 'to',
+        type: 'address',
+        indexed: true,
+        internalType: 'address',
       },
       {
-        "name": "value",
-        "type": "uint256",
-        "indexed": false,
-        "internalType": "uint256"
-      }
-    ]
+        name: 'value',
+        type: 'uint256',
+        indexed: false,
+        internalType: 'uint256',
+      },
+    ],
   },
   {
-    "type": "event",
-    "name": "RegistrationRequested",
-    "inputs": [
+    type: 'event',
+    name: 'RegistrationRequested',
+    inputs: [
       {
-        "name": "hash",
-        "type": "bytes32",
-        "indexed": true,
-        "internalType": "bytes32"
+        name: 'hash',
+        type: 'bytes32',
+        indexed: true,
+        internalType: 'bytes32',
       },
       {
-        "name": "name",
-        "type": "string",
-        "indexed": false,
-        "internalType": "string"
+        name: 'name',
+        type: 'string',
+        indexed: false,
+        internalType: 'string',
       },
       {
-        "name": "encryptedEmail",
-        "type": "bytes",
-        "indexed": false,
-        "internalType": "bytes"
+        name: 'encryptedEmail',
+        type: 'bytes',
+        indexed: false,
+        internalType: 'bytes',
       },
       {
-        "name": "upkeepContract",
-        "type": "address",
-        "indexed": true,
-        "internalType": "address"
+        name: 'upkeepContract',
+        type: 'address',
+        indexed: true,
+        internalType: 'address',
       },
       {
-        "name": "gasLimit",
-        "type": "uint32",
-        "indexed": false,
-        "internalType": "uint32"
+        name: 'gasLimit',
+        type: 'uint32',
+        indexed: false,
+        internalType: 'uint32',
       },
       {
-        "name": "adminAddress",
-        "type": "address",
-        "indexed": false,
-        "internalType": "address"
+        name: 'adminAddress',
+        type: 'address',
+        indexed: false,
+        internalType: 'address',
       },
       {
-        "name": "triggerType",
-        "type": "uint8",
-        "indexed": false,
-        "internalType": "uint8"
+        name: 'triggerType',
+        type: 'uint8',
+        indexed: false,
+        internalType: 'uint8',
       },
       {
-        "name": "triggerConfig",
-        "type": "bytes",
-        "indexed": false,
-        "internalType": "bytes"
+        name: 'triggerConfig',
+        type: 'bytes',
+        indexed: false,
+        internalType: 'bytes',
       },
       {
-        "name": "offchainConfig",
-        "type": "bytes",
-        "indexed": false,
-        "internalType": "bytes"
+        name: 'offchainConfig',
+        type: 'bytes',
+        indexed: false,
+        internalType: 'bytes',
       },
       {
-        "name": "checkData",
-        "type": "bytes",
-        "indexed": false,
-        "internalType": "bytes"
+        name: 'checkData',
+        type: 'bytes',
+        indexed: false,
+        internalType: 'bytes',
       },
       {
-        "name": "amount",
-        "type": "uint96",
-        "indexed": false,
-        "internalType": "uint96"
-      }
-    ]
+        name: 'amount',
+        type: 'uint96',
+        indexed: false,
+        internalType: 'uint96',
+      },
+    ],
   },
   {
-    "type": "event",
-    "name": "UpkeepRegistered",
-    "inputs": [
+    type: 'event',
+    name: 'UpkeepRegistered',
+    inputs: [
       {
-        "name": "id",
-        "type": "uint256",
-        "indexed": true,
-        "internalType": "uint256"
+        name: 'id',
+        type: 'uint256',
+        indexed: true,
+        internalType: 'uint256',
       },
       {
-        "name": "performGas",
-        "type": "uint32",
-        "indexed": false,
-        "internalType": "uint32"
+        name: 'performGas',
+        type: 'uint32',
+        indexed: false,
+        internalType: 'uint32',
       },
       {
-        "name": "admin",
-        "type": "address",
-        "indexed": false,
-        "internalType": "address"
-      }
-    ]
+        name: 'admin',
+        type: 'address',
+        indexed: false,
+        internalType: 'address',
+      },
+    ],
   },
   {
-    "type": "event",
-    "name": "UpkeepCheckDataSet",
-    "inputs": [
+    type: 'event',
+    name: 'UpkeepCheckDataSet',
+    inputs: [
       {
-        "name": "id",
-        "type": "uint256",
-        "indexed": true,
-        "internalType": "uint256"
+        name: 'id',
+        type: 'uint256',
+        indexed: true,
+        internalType: 'uint256',
       },
       {
-        "name": "newCheckData",
-        "type": "bytes",
-        "indexed": false,
-        "internalType": "bytes"
-      }
-    ]
+        name: 'newCheckData',
+        type: 'bytes',
+        indexed: false,
+        internalType: 'bytes',
+      },
+    ],
   },
   {
-    "type": "event",
-    "name": "UpkeepTriggerConfigSet",
-    "inputs": [
+    type: 'event',
+    name: 'UpkeepTriggerConfigSet',
+    inputs: [
       {
-        "name": "id",
-        "type": "uint256",
-        "indexed": true,
-        "internalType": "uint256"
+        name: 'id',
+        type: 'uint256',
+        indexed: true,
+        internalType: 'uint256',
       },
       {
-        "name": "triggerConfig",
-        "type": "bytes",
-        "indexed": false,
-        "internalType": "bytes"
-      }
-    ]
+        name: 'triggerConfig',
+        type: 'bytes',
+        indexed: false,
+        internalType: 'bytes',
+      },
+    ],
   },
   {
-    "type": "event",
-    "name": "UpkeepOffchainConfigSet",
-    "inputs": [
+    type: 'event',
+    name: 'UpkeepOffchainConfigSet',
+    inputs: [
       {
-        "name": "id",
-        "type": "uint256",
-        "indexed": true,
-        "internalType": "uint256"
+        name: 'id',
+        type: 'uint256',
+        indexed: true,
+        internalType: 'uint256',
       },
       {
-        "name": "offchainConfig",
-        "type": "bytes",
-        "indexed": false,
-        "internalType": "bytes"
-      }
-    ]
+        name: 'offchainConfig',
+        type: 'bytes',
+        indexed: false,
+        internalType: 'bytes',
+      },
+    ],
   },
   {
-    "type": "event",
-    "name": "Transfer",
-    "inputs": [
+    type: 'event',
+    name: 'Transfer',
+    inputs: [
       {
-        "name": "from",
-        "type": "address",
-        "indexed": true,
-        "internalType": "address"
+        name: 'from',
+        type: 'address',
+        indexed: true,
+        internalType: 'address',
       },
       {
-        "name": "to",
-        "type": "address",
-        "indexed": true,
-        "internalType": "address"
+        name: 'to',
+        type: 'address',
+        indexed: true,
+        internalType: 'address',
       },
       {
-        "name": "value",
-        "type": "uint256",
-        "indexed": false,
-        "internalType": "uint256"
+        name: 'value',
+        type: 'uint256',
+        indexed: false,
+        internalType: 'uint256',
       },
       {
-        "name": "data",
-        "type": "bytes",
-        "indexed": false,
-        "internalType": "bytes"
-      }
-    ]
+        name: 'data',
+        type: 'bytes',
+        indexed: false,
+        internalType: 'bytes',
+      },
+    ],
   },
   {
-    "type": "event",
-    "name": "FundsAdded",
-    "inputs": [
+    type: 'event',
+    name: 'FundsAdded',
+    inputs: [
       {
-        "name": "id",
-        "type": "uint256",
-        "indexed": true,
-        "internalType": "uint256"
+        name: 'id',
+        type: 'uint256',
+        indexed: true,
+        internalType: 'uint256',
       },
       {
-        "name": "from",
-        "type": "address",
-        "indexed": true,
-        "internalType": "address"
+        name: 'from',
+        type: 'address',
+        indexed: true,
+        internalType: 'address',
       },
       {
-        "name": "amount",
-        "type": "uint96",
-        "indexed": false,
-        "internalType": "uint96"
-      }
-    ]
+        name: 'amount',
+        type: 'uint96',
+        indexed: false,
+        internalType: 'uint96',
+      },
+    ],
   },
   {
-    "type": "event",
-    "name": "RegistrationApproved",
-    "inputs": [
+    type: 'event',
+    name: 'RegistrationApproved',
+    inputs: [
       {
-        "name": "hash",
-        "type": "bytes32",
-        "indexed": true,
-        "internalType": "bytes32"
+        name: 'hash',
+        type: 'bytes32',
+        indexed: true,
+        internalType: 'bytes32',
       },
       {
-        "name": "displayName",
-        "type": "string",
-        "indexed": false,
-        "internalType": "string"
+        name: 'displayName',
+        type: 'string',
+        indexed: false,
+        internalType: 'string',
       },
       {
-        "name": "upkeepId",
-        "type": "uint256",
-        "indexed": true,
-        "internalType": "uint256"
-      }
-    ]
+        name: 'upkeepId',
+        type: 'uint256',
+        indexed: true,
+        internalType: 'uint256',
+      },
+    ],
   },
   {
-    "type": "event",
-    "name": "KeeperRegistered",
-    "inputs": [
+    type: 'event',
+    name: 'KeeperRegistered',
+    inputs: [
       {
-        "name": "id",
-        "type": "uint256",
-        "indexed": true,
-        "internalType": "uint256"
+        name: 'id',
+        type: 'uint256',
+        indexed: true,
+        internalType: 'uint256',
       },
       {
-        "name": "upkeep",
-        "type": "address",
-        "indexed": true,
-        "internalType": "address"
+        name: 'upkeep',
+        type: 'address',
+        indexed: true,
+        internalType: 'address',
       },
       {
-        "name": "amount",
-        "type": "uint96",
-        "indexed": true,
-        "internalType": "uint96"
-      }
-    ]
+        name: 'amount',
+        type: 'uint96',
+        indexed: true,
+        internalType: 'uint96',
+      },
+    ],
   },
   {
-    "type": "event",
-    "name": "ExecutedAction",
-    "inputs": [
+    type: 'event',
+    name: 'ExecutedAction',
+    inputs: [
       {
-        "name": "target",
-        "type": "address",
-        "indexed": true,
-        "internalType": "address"
+        name: 'target',
+        type: 'address',
+        indexed: true,
+        internalType: 'address',
       },
       {
-        "name": "value",
-        "type": "uint256",
-        "indexed": false,
-        "internalType": "uint256"
+        name: 'value',
+        type: 'uint256',
+        indexed: false,
+        internalType: 'uint256',
       },
       {
-        "name": "signature",
-        "type": "string",
-        "indexed": false,
-        "internalType": "string"
+        name: 'signature',
+        type: 'string',
+        indexed: false,
+        internalType: 'string',
       },
       {
-        "name": "data",
-        "type": "bytes",
-        "indexed": false,
-        "internalType": "bytes"
+        name: 'data',
+        type: 'bytes',
+        indexed: false,
+        internalType: 'bytes',
       },
       {
-        "name": "executionTime",
-        "type": "uint256",
-        "indexed": false,
-        "internalType": "uint256"
+        name: 'executionTime',
+        type: 'uint256',
+        indexed: false,
+        internalType: 'uint256',
       },
       {
-        "name": "withDelegatecall",
-        "type": "bool",
-        "indexed": false,
-        "internalType": "bool"
+        name: 'withDelegatecall',
+        type: 'bool',
+        indexed: false,
+        internalType: 'bool',
       },
       {
-        "name": "resultData",
-        "type": "bytes",
-        "indexed": false,
-        "internalType": "bytes"
-      }
-    ]
+        name: 'resultData',
+        type: 'bytes',
+        indexed: false,
+        internalType: 'bytes',
+      },
+    ],
   },
   {
-    "type": "event",
-    "name": "PayloadExecuted",
-    "inputs": [
+    type: 'event',
+    name: 'PayloadExecuted',
+    inputs: [
       {
-        "name": "payloadId",
-        "type": "uint40",
-        "indexed": false,
-        "internalType": "uint40"
-      }
-    ]
+        name: 'payloadId',
+        type: 'uint40',
+        indexed: false,
+        internalType: 'uint40',
+      },
+    ],
   },
   {
-    "type": "event",
-    "name": "Mint",
-    "inputs": [
+    type: 'event',
+    name: 'Mint',
+    inputs: [
       {
-        "name": "caller",
-        "type": "address",
-        "indexed": true,
-        "internalType": "address"
+        name: 'caller',
+        type: 'address',
+        indexed: true,
+        internalType: 'address',
       },
       {
-        "name": "onBehalfOf",
-        "type": "address",
-        "indexed": true,
-        "internalType": "address"
+        name: 'onBehalfOf',
+        type: 'address',
+        indexed: true,
+        internalType: 'address',
       },
       {
-        "name": "value",
-        "type": "uint256",
-        "indexed": false,
-        "internalType": "uint256"
+        name: 'value',
+        type: 'uint256',
+        indexed: false,
+        internalType: 'uint256',
       },
       {
-        "name": "balanceIncrease",
-        "type": "uint256",
-        "indexed": false,
-        "internalType": "uint256"
+        name: 'balanceIncrease',
+        type: 'uint256',
+        indexed: false,
+        internalType: 'uint256',
       },
       {
-        "name": "index",
-        "type": "uint256",
-        "indexed": false,
-        "internalType": "uint256"
-      }
-    ]
+        name: 'index',
+        type: 'uint256',
+        indexed: false,
+        internalType: 'uint256',
+      },
+    ],
   },
   {
-    "type": "event",
-    "name": "BalanceTransfer",
-    "inputs": [
+    type: 'event',
+    name: 'BalanceTransfer',
+    inputs: [
       {
-        "name": "from",
-        "type": "address",
-        "indexed": true,
-        "internalType": "address"
+        name: 'from',
+        type: 'address',
+        indexed: true,
+        internalType: 'address',
       },
       {
-        "name": "to",
-        "type": "address",
-        "indexed": true,
-        "internalType": "address"
+        name: 'to',
+        type: 'address',
+        indexed: true,
+        internalType: 'address',
       },
       {
-        "name": "value",
-        "type": "uint256",
-        "indexed": false,
-        "internalType": "uint256"
+        name: 'value',
+        type: 'uint256',
+        indexed: false,
+        internalType: 'uint256',
       },
       {
-        "name": "index",
-        "type": "uint256",
-        "indexed": false,
-        "internalType": "uint256"
-      }
-    ]
+        name: 'index',
+        type: 'uint256',
+        indexed: false,
+        internalType: 'uint256',
+      },
+    ],
   },
   {
-    "type": "event",
-    "name": "CancelStream",
-    "inputs": [
+    type: 'event',
+    name: 'CancelStream',
+    inputs: [
       {
-        "name": "streamId",
-        "type": "uint256",
-        "indexed": true,
-        "internalType": "uint256"
+        name: 'streamId',
+        type: 'uint256',
+        indexed: true,
+        internalType: 'uint256',
       },
       {
-        "name": "sender",
-        "type": "address",
-        "indexed": true,
-        "internalType": "address"
+        name: 'sender',
+        type: 'address',
+        indexed: true,
+        internalType: 'address',
       },
       {
-        "name": "recipient",
-        "type": "address",
-        "indexed": true,
-        "internalType": "address"
+        name: 'recipient',
+        type: 'address',
+        indexed: true,
+        internalType: 'address',
       },
       {
-        "name": "senderBalance",
-        "type": "uint256",
-        "indexed": false,
-        "internalType": "uint256"
+        name: 'senderBalance',
+        type: 'uint256',
+        indexed: false,
+        internalType: 'uint256',
       },
       {
-        "name": "recipientBalance",
-        "type": "uint256",
-        "indexed": false,
-        "internalType": "uint256"
-      }
-    ]
+        name: 'recipientBalance',
+        type: 'uint256',
+        indexed: false,
+        internalType: 'uint256',
+      },
+    ],
   },
   {
-    "type": "event",
-    "name": "CreateStream",
-    "inputs": [
+    type: 'event',
+    name: 'CreateStream',
+    inputs: [
       {
-        "name": "streamId",
-        "type": "uint256",
-        "indexed": true,
-        "internalType": "uint256"
+        name: 'streamId',
+        type: 'uint256',
+        indexed: true,
+        internalType: 'uint256',
       },
       {
-        "name": "sender",
-        "type": "address",
-        "indexed": true,
-        "internalType": "address"
+        name: 'sender',
+        type: 'address',
+        indexed: true,
+        internalType: 'address',
       },
       {
-        "name": "recipient",
-        "type": "address",
-        "indexed": true,
-        "internalType": "address"
+        name: 'recipient',
+        type: 'address',
+        indexed: true,
+        internalType: 'address',
       },
       {
-        "name": "deposit",
-        "type": "uint256",
-        "indexed": false,
-        "internalType": "uint256"
+        name: 'deposit',
+        type: 'uint256',
+        indexed: false,
+        internalType: 'uint256',
       },
       {
-        "name": "tokenAddress",
-        "type": "address",
-        "indexed": false,
-        "internalType": "address"
+        name: 'tokenAddress',
+        type: 'address',
+        indexed: false,
+        internalType: 'address',
       },
       {
-        "name": "startTime",
-        "type": "uint256",
-        "indexed": false,
-        "internalType": "uint256"
+        name: 'startTime',
+        type: 'uint256',
+        indexed: false,
+        internalType: 'uint256',
       },
       {
-        "name": "stopTime",
-        "type": "uint256",
-        "indexed": false,
-        "internalType": "uint256"
-      }
-    ]
+        name: 'stopTime',
+        type: 'uint256',
+        indexed: false,
+        internalType: 'uint256',
+      },
+    ],
   },
   {
-    "type": "event",
-    "name": "SupplyCapChanged",
-    "inputs": [
+    type: 'event',
+    name: 'SupplyCapChanged',
+    inputs: [
       {
-        "name": "asset",
-        "type": "address",
-        "indexed": true,
-        "internalType": "address"
+        name: 'asset',
+        type: 'address',
+        indexed: true,
+        internalType: 'address',
       },
       {
-        "name": "oldSupplyCap",
-        "type": "uint256",
-        "indexed": false,
-        "internalType": "uint256"
+        name: 'oldSupplyCap',
+        type: 'uint256',
+        indexed: false,
+        internalType: 'uint256',
       },
       {
-        "name": "newSupplyCap",
-        "type": "uint256",
-        "indexed": false,
-        "internalType": "uint256"
-      }
-    ]
+        name: 'newSupplyCap',
+        type: 'uint256',
+        indexed: false,
+        internalType: 'uint256',
+      },
+    ],
   },
   {
-    "type": "event",
-    "name": "BorrowCapChanged",
-    "inputs": [
+    type: 'event',
+    name: 'BorrowCapChanged',
+    inputs: [
       {
-        "name": "asset",
-        "type": "address",
-        "indexed": true,
-        "internalType": "address"
+        name: 'asset',
+        type: 'address',
+        indexed: true,
+        internalType: 'address',
       },
       {
-        "name": "oldBorrowCap",
-        "type": "uint256",
-        "indexed": false,
-        "internalType": "uint256"
+        name: 'oldBorrowCap',
+        type: 'uint256',
+        indexed: false,
+        internalType: 'uint256',
       },
       {
-        "name": "newBorrowCap",
-        "type": "uint256",
-        "indexed": false,
-        "internalType": "uint256"
-      }
-    ]
+        name: 'newBorrowCap',
+        type: 'uint256',
+        indexed: false,
+        internalType: 'uint256',
+      },
+    ],
   },
   {
-    "type": "event",
-    "name": "BridgeAdapterUpdated",
-    "inputs": [
+    type: 'event',
+    name: 'BridgeAdapterUpdated',
+    inputs: [
       {
-        "name": "destinationChainId",
-        "type": "uint256",
-        "indexed": true,
-        "internalType": "uint256"
+        name: 'destinationChainId',
+        type: 'uint256',
+        indexed: true,
+        internalType: 'uint256',
       },
       {
-        "name": "bridgeAdapter",
-        "type": "address",
-        "indexed": true,
-        "internalType": "address"
+        name: 'bridgeAdapter',
+        type: 'address',
+        indexed: true,
+        internalType: 'address',
       },
       {
-        "name": "destinationBridgeAdapter",
-        "type": "address",
-        "indexed": false,
-        "internalType": "address"
+        name: 'destinationBridgeAdapter',
+        type: 'address',
+        indexed: false,
+        internalType: 'address',
       },
       {
-        "name": "allowed",
-        "type": "bool",
-        "indexed": true,
-        "internalType": "bool"
-      }
-    ]
+        name: 'allowed',
+        type: 'bool',
+        indexed: true,
+        internalType: 'bool',
+      },
+    ],
   },
   {
-    "type": "event",
-    "name": "AssetSourceUpdated",
-    "inputs": [
+    type: 'event',
+    name: 'AssetSourceUpdated',
+    inputs: [
       {
-        "name": "asset",
-        "type": "address",
-        "indexed": true,
-        "internalType": "address"
+        name: 'asset',
+        type: 'address',
+        indexed: true,
+        internalType: 'address',
       },
       {
-        "name": "source",
-        "type": "address",
-        "indexed": true,
-        "internalType": "address"
-      }
-    ]
+        name: 'source',
+        type: 'address',
+        indexed: true,
+        internalType: 'address',
+      },
+    ],
   },
   {
-    "type": "event",
-    "name": "Initialized",
-    "inputs": [
+    type: 'event',
+    name: 'Initialized',
+    inputs: [
       {
-        "name": "underlyingAsset",
-        "type": "address",
-        "indexed": true,
-        "internalType": "address"
+        name: 'underlyingAsset',
+        type: 'address',
+        indexed: true,
+        internalType: 'address',
       },
       {
-        "name": "pool",
-        "type": "address",
-        "indexed": true,
-        "internalType": "address"
+        name: 'pool',
+        type: 'address',
+        indexed: true,
+        internalType: 'address',
       },
       {
-        "name": "treasury",
-        "type": "address",
-        "indexed": false,
-        "internalType": "address"
+        name: 'treasury',
+        type: 'address',
+        indexed: false,
+        internalType: 'address',
       },
       {
-        "name": "incentivesController",
-        "type": "address",
-        "indexed": false,
-        "internalType": "address"
+        name: 'incentivesController',
+        type: 'address',
+        indexed: false,
+        internalType: 'address',
       },
       {
-        "name": "aTokenDecimals",
-        "type": "uint8",
-        "indexed": false,
-        "internalType": "uint8"
+        name: 'aTokenDecimals',
+        type: 'uint8',
+        indexed: false,
+        internalType: 'uint8',
       },
       {
-        "name": "aTokenName",
-        "type": "string",
-        "indexed": false,
-        "internalType": "string"
+        name: 'aTokenName',
+        type: 'string',
+        indexed: false,
+        internalType: 'string',
       },
       {
-        "name": "aTokenSymbol",
-        "type": "string",
-        "indexed": false,
-        "internalType": "string"
+        name: 'aTokenSymbol',
+        type: 'string',
+        indexed: false,
+        internalType: 'string',
       },
       {
-        "name": "params",
-        "type": "bytes",
-        "indexed": false,
-        "internalType": "bytes"
-      }
-    ]
+        name: 'params',
+        type: 'bytes',
+        indexed: false,
+        internalType: 'bytes',
+      },
+    ],
   },
   {
-    "type": "event",
-    "name": "Initialized",
-    "inputs": [
+    type: 'event',
+    name: 'Initialized',
+    inputs: [
       {
-        "name": "underlyingAsset",
-        "type": "address",
-        "indexed": true,
-        "internalType": "address"
+        name: 'underlyingAsset',
+        type: 'address',
+        indexed: true,
+        internalType: 'address',
       },
       {
-        "name": "pool",
-        "type": "address",
-        "indexed": true,
-        "internalType": "address"
+        name: 'pool',
+        type: 'address',
+        indexed: true,
+        internalType: 'address',
       },
       {
-        "name": "incentivesController",
-        "type": "address",
-        "indexed": false,
-        "internalType": "address"
+        name: 'incentivesController',
+        type: 'address',
+        indexed: false,
+        internalType: 'address',
       },
       {
-        "name": "debtTokenDecimals",
-        "type": "uint8",
-        "indexed": false,
-        "internalType": "uint8"
+        name: 'debtTokenDecimals',
+        type: 'uint8',
+        indexed: false,
+        internalType: 'uint8',
       },
       {
-        "name": "debtTokenName",
-        "type": "string",
-        "indexed": false,
-        "internalType": "string"
+        name: 'debtTokenName',
+        type: 'string',
+        indexed: false,
+        internalType: 'string',
       },
       {
-        "name": "debtTokenSymbol",
-        "type": "string",
-        "indexed": false,
-        "internalType": "string"
+        name: 'debtTokenSymbol',
+        type: 'string',
+        indexed: false,
+        internalType: 'string',
       },
       {
-        "name": "params",
-        "type": "bytes",
-        "indexed": false,
-        "internalType": "bytes"
-      }
-    ]
+        name: 'params',
+        type: 'bytes',
+        indexed: false,
+        internalType: 'bytes',
+      },
+    ],
   },
   {
-    "type": "event",
-    "name": "RateDataUpdate",
-    "inputs": [
+    type: 'event',
+    name: 'RateDataUpdate',
+    inputs: [
       {
-        "name": "reserve",
-        "type": "address",
-        "indexed": true,
-        "internalType": "address"
+        name: 'reserve',
+        type: 'address',
+        indexed: true,
+        internalType: 'address',
       },
       {
-        "name": "optimalUsageRatio",
-        "type": "uint256",
-        "indexed": false,
-        "internalType": "uint256"
+        name: 'optimalUsageRatio',
+        type: 'uint256',
+        indexed: false,
+        internalType: 'uint256',
       },
       {
-        "name": "baseVariableBorrowRate",
-        "type": "uint256",
-        "indexed": false,
-        "internalType": "uint256"
+        name: 'baseVariableBorrowRate',
+        type: 'uint256',
+        indexed: false,
+        internalType: 'uint256',
       },
       {
-        "name": "variableRateSlope1",
-        "type": "uint256",
-        "indexed": false,
-        "internalType": "uint256"
+        name: 'variableRateSlope1',
+        type: 'uint256',
+        indexed: false,
+        internalType: 'uint256',
       },
       {
-        "name": "variableRateSlope2",
-        "type": "uint256",
-        "indexed": false,
-        "internalType": "uint256"
-      }
-    ]
+        name: 'variableRateSlope2',
+        type: 'uint256',
+        indexed: false,
+        internalType: 'uint256',
+      },
+    ],
   },
   {
-    "type": "event",
-    "name": "ReserveInitialized",
-    "inputs": [
+    type: 'event',
+    name: 'ReserveInitialized',
+    inputs: [
       {
-        "name": "asset",
-        "type": "address",
-        "indexed": true,
-        "internalType": "address"
+        name: 'asset',
+        type: 'address',
+        indexed: true,
+        internalType: 'address',
       },
       {
-        "name": "aToken",
-        "type": "address",
-        "indexed": true,
-        "internalType": "address"
+        name: 'aToken',
+        type: 'address',
+        indexed: true,
+        internalType: 'address',
       },
       {
-        "name": "stableDebtToken",
-        "type": "address",
-        "indexed": false,
-        "internalType": "address"
+        name: 'stableDebtToken',
+        type: 'address',
+        indexed: false,
+        internalType: 'address',
       },
       {
-        "name": "variableDebtToken",
-        "type": "address",
-        "indexed": false,
-        "internalType": "address"
+        name: 'variableDebtToken',
+        type: 'address',
+        indexed: false,
+        internalType: 'address',
       },
       {
-        "name": "interestRateStrategyAddress",
-        "type": "address",
-        "indexed": false,
-        "internalType": "address"
-      }
-    ]
+        name: 'interestRateStrategyAddress',
+        type: 'address',
+        indexed: false,
+        internalType: 'address',
+      },
+    ],
   },
   {
-    "type": "event",
-    "name": "ReserveInterestRateDataChanged",
-    "inputs": [
+    type: 'event',
+    name: 'ReserveInterestRateDataChanged',
+    inputs: [
       {
-        "name": "asset",
-        "type": "address",
-        "indexed": true,
-        "internalType": "address"
+        name: 'asset',
+        type: 'address',
+        indexed: true,
+        internalType: 'address',
       },
       {
-        "name": "strategy",
-        "type": "address",
-        "indexed": true,
-        "internalType": "address"
+        name: 'strategy',
+        type: 'address',
+        indexed: true,
+        internalType: 'address',
       },
       {
-        "name": "data",
-        "type": "bytes",
-        "indexed": false,
-        "internalType": "bytes"
-      }
-    ]
+        name: 'data',
+        type: 'bytes',
+        indexed: false,
+        internalType: 'bytes',
+      },
+    ],
   },
   {
-    "type": "event",
-    "name": "ReserveBorrowing",
-    "inputs": [
+    type: 'event',
+    name: 'ReserveBorrowing',
+    inputs: [
       {
-        "name": "asset",
-        "type": "address",
-        "indexed": true,
-        "internalType": "address"
+        name: 'asset',
+        type: 'address',
+        indexed: true,
+        internalType: 'address',
       },
       {
-        "name": "enabled",
-        "type": "bool",
-        "indexed": false,
-        "internalType": "bool"
-      }
-    ]
+        name: 'enabled',
+        type: 'bool',
+        indexed: false,
+        internalType: 'bool',
+      },
+    ],
   },
   {
-    "type": "event",
-    "name": "BorrowableInIsolationChanged",
-    "inputs": [
+    type: 'event',
+    name: 'BorrowableInIsolationChanged',
+    inputs: [
       {
-        "name": "asset",
-        "type": "address",
-        "indexed": false,
-        "internalType": "address"
+        name: 'asset',
+        type: 'address',
+        indexed: false,
+        internalType: 'address',
       },
       {
-        "name": "borrowable",
-        "type": "bool",
-        "indexed": false,
-        "internalType": "bool"
-      }
-    ]
+        name: 'borrowable',
+        type: 'bool',
+        indexed: false,
+        internalType: 'bool',
+      },
+    ],
   },
   {
-    "type": "event",
-    "name": "SiloedBorrowingChanged",
-    "inputs": [
+    type: 'event',
+    name: 'SiloedBorrowingChanged',
+    inputs: [
       {
-        "name": "asset",
-        "type": "address",
-        "indexed": true,
-        "internalType": "address"
+        name: 'asset',
+        type: 'address',
+        indexed: true,
+        internalType: 'address',
       },
       {
-        "name": "oldState",
-        "type": "bool",
-        "indexed": false,
-        "internalType": "bool"
+        name: 'oldState',
+        type: 'bool',
+        indexed: false,
+        internalType: 'bool',
       },
       {
-        "name": "newState",
-        "type": "bool",
-        "indexed": false,
-        "internalType": "bool"
-      }
-    ]
+        name: 'newState',
+        type: 'bool',
+        indexed: false,
+        internalType: 'bool',
+      },
+    ],
   },
   {
-    "type": "event",
-    "name": "ReserveFactorChanged",
-    "inputs": [
+    type: 'event',
+    name: 'ReserveFactorChanged',
+    inputs: [
       {
-        "name": "asset",
-        "type": "address",
-        "indexed": true,
-        "internalType": "address"
+        name: 'asset',
+        type: 'address',
+        indexed: true,
+        internalType: 'address',
       },
       {
-        "name": "oldReserveFactor",
-        "type": "uint256",
-        "indexed": false,
-        "internalType": "uint256"
+        name: 'oldReserveFactor',
+        type: 'uint256',
+        indexed: false,
+        internalType: 'uint256',
       },
       {
-        "name": "newReserveFactor",
-        "type": "uint256",
-        "indexed": false,
-        "internalType": "uint256"
-      }
-    ]
+        name: 'newReserveFactor',
+        type: 'uint256',
+        indexed: false,
+        internalType: 'uint256',
+      },
+    ],
   },
   {
-    "type": "event",
-    "name": "ReserveDataUpdated",
-    "inputs": [
+    type: 'event',
+    name: 'ReserveDataUpdated',
+    inputs: [
       {
-        "name": "reserve",
-        "type": "address",
-        "indexed": true,
-        "internalType": "address"
+        name: 'reserve',
+        type: 'address',
+        indexed: true,
+        internalType: 'address',
       },
       {
-        "name": "liquidityRate",
-        "type": "uint256",
-        "indexed": false,
-        "internalType": "uint256"
+        name: 'liquidityRate',
+        type: 'uint256',
+        indexed: false,
+        internalType: 'uint256',
       },
       {
-        "name": "stableBorrowRate",
-        "type": "uint256",
-        "indexed": false,
-        "internalType": "uint256"
+        name: 'stableBorrowRate',
+        type: 'uint256',
+        indexed: false,
+        internalType: 'uint256',
       },
       {
-        "name": "variableBorrowRate",
-        "type": "uint256",
-        "indexed": false,
-        "internalType": "uint256"
+        name: 'variableBorrowRate',
+        type: 'uint256',
+        indexed: false,
+        internalType: 'uint256',
       },
       {
-        "name": "liquidityIndex",
-        "type": "uint256",
-        "indexed": false,
-        "internalType": "uint256"
+        name: 'liquidityIndex',
+        type: 'uint256',
+        indexed: false,
+        internalType: 'uint256',
       },
       {
-        "name": "variableBorrowIndex",
-        "type": "uint256",
-        "indexed": false,
-        "internalType": "uint256"
-      }
-    ]
+        name: 'variableBorrowIndex',
+        type: 'uint256',
+        indexed: false,
+        internalType: 'uint256',
+      },
+    ],
   },
   {
-    "type": "event",
-    "name": "ReserveFlashLoaning",
-    "inputs": [
+    type: 'event',
+    name: 'ReserveFlashLoaning',
+    inputs: [
       {
-        "name": "asset",
-        "type": "address",
-        "indexed": true,
-        "internalType": "address"
+        name: 'asset',
+        type: 'address',
+        indexed: true,
+        internalType: 'address',
       },
       {
-        "name": "enabled",
-        "type": "bool",
-        "indexed": false,
-        "internalType": "bool"
-      }
-    ]
+        name: 'enabled',
+        type: 'bool',
+        indexed: false,
+        internalType: 'bool',
+      },
+    ],
   },
   {
-    "type": "event",
-    "name": "CollateralConfigurationChanged",
-    "inputs": [
+    type: 'event',
+    name: 'CollateralConfigurationChanged',
+    inputs: [
       {
-        "name": "asset",
-        "type": "address",
-        "indexed": true,
-        "internalType": "address"
+        name: 'asset',
+        type: 'address',
+        indexed: true,
+        internalType: 'address',
       },
       {
-        "name": "ltv",
-        "type": "uint256",
-        "indexed": false,
-        "internalType": "uint256"
+        name: 'ltv',
+        type: 'uint256',
+        indexed: false,
+        internalType: 'uint256',
       },
       {
-        "name": "liquidationThreshold",
-        "type": "uint256",
-        "indexed": false,
-        "internalType": "uint256"
+        name: 'liquidationThreshold',
+        type: 'uint256',
+        indexed: false,
+        internalType: 'uint256',
       },
       {
-        "name": "liquidationBonus",
-        "type": "uint256",
-        "indexed": false,
-        "internalType": "uint256"
-      }
-    ]
+        name: 'liquidationBonus',
+        type: 'uint256',
+        indexed: false,
+        internalType: 'uint256',
+      },
+    ],
   },
   {
-    "type": "event",
-    "name": "DebtCeilingChanged",
-    "inputs": [
+    type: 'event',
+    name: 'DebtCeilingChanged',
+    inputs: [
       {
-        "name": "asset",
-        "type": "address",
-        "indexed": true,
-        "internalType": "address"
+        name: 'asset',
+        type: 'address',
+        indexed: true,
+        internalType: 'address',
       },
       {
-        "name": "oldDebtCeiling",
-        "type": "uint256",
-        "indexed": false,
-        "internalType": "uint256"
+        name: 'oldDebtCeiling',
+        type: 'uint256',
+        indexed: false,
+        internalType: 'uint256',
       },
       {
-        "name": "newDebtCeiling",
-        "type": "uint256",
-        "indexed": false,
-        "internalType": "uint256"
-      }
-    ]
+        name: 'newDebtCeiling',
+        type: 'uint256',
+        indexed: false,
+        internalType: 'uint256',
+      },
+    ],
   },
   {
-    "type": "event",
-    "name": "LiquidationProtocolFeeChanged",
-    "inputs": [
+    type: 'event',
+    name: 'LiquidationProtocolFeeChanged',
+    inputs: [
       {
-        "name": "asset",
-        "type": "address",
-        "indexed": true,
-        "internalType": "address"
+        name: 'asset',
+        type: 'address',
+        indexed: true,
+        internalType: 'address',
       },
       {
-        "name": "oldFee",
-        "type": "uint256",
-        "indexed": false,
-        "internalType": "uint256"
+        name: 'oldFee',
+        type: 'uint256',
+        indexed: false,
+        internalType: 'uint256',
       },
       {
-        "name": "newFee",
-        "type": "uint256",
-        "indexed": false,
-        "internalType": "uint256"
-      }
-    ]
+        name: 'newFee',
+        type: 'uint256',
+        indexed: false,
+        internalType: 'uint256',
+      },
+    ],
   },
   {
-    "type": "event",
-    "name": "EModeCategoryAdded",
-    "inputs": [
+    type: 'event',
+    name: 'EModeCategoryAdded',
+    inputs: [
       {
-        "name": "categoryId",
-        "type": "uint8",
-        "indexed": true,
-        "internalType": "uint8"
+        name: 'categoryId',
+        type: 'uint8',
+        indexed: true,
+        internalType: 'uint8',
       },
       {
-        "name": "ltv",
-        "type": "uint256",
-        "indexed": false,
-        "internalType": "uint256"
+        name: 'ltv',
+        type: 'uint256',
+        indexed: false,
+        internalType: 'uint256',
       },
       {
-        "name": "liquidationThreshold",
-        "type": "uint256",
-        "indexed": false,
-        "internalType": "uint256"
+        name: 'liquidationThreshold',
+        type: 'uint256',
+        indexed: false,
+        internalType: 'uint256',
       },
       {
-        "name": "liquidationBonus",
-        "type": "uint256",
-        "indexed": false,
-        "internalType": "uint256"
+        name: 'liquidationBonus',
+        type: 'uint256',
+        indexed: false,
+        internalType: 'uint256',
       },
       {
-        "name": "oracle",
-        "type": "address",
-        "indexed": false,
-        "internalType": "address"
+        name: 'oracle',
+        type: 'address',
+        indexed: false,
+        internalType: 'address',
       },
       {
-        "name": "label",
-        "type": "string",
-        "indexed": false,
-        "internalType": "string"
-      }
-    ]
+        name: 'label',
+        type: 'string',
+        indexed: false,
+        internalType: 'string',
+      },
+    ],
   },
   {
-    "type": "event",
-    "name": "AssetCollateralInEModeChanged",
-    "inputs": [
+    type: 'event',
+    name: 'AssetCollateralInEModeChanged',
+    inputs: [
       {
-        "name": "asset",
-        "type": "address",
-        "indexed": true,
-        "internalType": "address"
+        name: 'asset',
+        type: 'address',
+        indexed: true,
+        internalType: 'address',
       },
       {
-        "name": "categoryId",
-        "type": "uint8",
-        "indexed": false,
-        "internalType": "uint8"
+        name: 'categoryId',
+        type: 'uint8',
+        indexed: false,
+        internalType: 'uint8',
       },
       {
-        "name": "collateral",
-        "type": "bool",
-        "indexed": false,
-        "internalType": "bool"
-      }
-    ]
+        name: 'collateral',
+        type: 'bool',
+        indexed: false,
+        internalType: 'bool',
+      },
+    ],
   },
   {
-    "type": "event",
-    "name": "AssetBorrowableInEModeChanged",
-    "inputs": [
+    type: 'event',
+    name: 'AssetBorrowableInEModeChanged',
+    inputs: [
       {
-        "name": "asset",
-        "type": "address",
-        "indexed": true,
-        "internalType": "address"
+        name: 'asset',
+        type: 'address',
+        indexed: true,
+        internalType: 'address',
       },
       {
-        "name": "categoryId",
-        "type": "uint8",
-        "indexed": false,
-        "internalType": "uint8"
+        name: 'categoryId',
+        type: 'uint8',
+        indexed: false,
+        internalType: 'uint8',
       },
       {
-        "name": "borrowable",
-        "type": "bool",
-        "indexed": false,
-        "internalType": "bool"
-      }
-    ]
+        name: 'borrowable',
+        type: 'bool',
+        indexed: false,
+        internalType: 'bool',
+      },
+    ],
   },
   {
-    "type": "event",
-    "name": "Supply",
-    "inputs": [
+    type: 'event',
+    name: 'Supply',
+    inputs: [
       {
-        "name": "reserve",
-        "type": "address",
-        "indexed": true,
-        "internalType": "address"
+        name: 'reserve',
+        type: 'address',
+        indexed: true,
+        internalType: 'address',
       },
       {
-        "name": "user",
-        "type": "address",
-        "indexed": false,
-        "internalType": "address"
+        name: 'user',
+        type: 'address',
+        indexed: false,
+        internalType: 'address',
       },
       {
-        "name": "onBehalfOf",
-        "type": "address",
-        "indexed": true,
-        "internalType": "address"
+        name: 'onBehalfOf',
+        type: 'address',
+        indexed: true,
+        internalType: 'address',
       },
       {
-        "name": "amount",
-        "type": "uint256",
-        "indexed": false,
-        "internalType": "uint256"
+        name: 'amount',
+        type: 'uint256',
+        indexed: false,
+        internalType: 'uint256',
       },
       {
-        "name": "referralCode",
-        "type": "uint16",
-        "indexed": true,
-        "internalType": "uint16"
-      }
-    ]
+        name: 'referralCode',
+        type: 'uint16',
+        indexed: true,
+        internalType: 'uint16',
+      },
+    ],
   },
   {
-    "type": "event",
-    "name": "AgentRegistered",
-    "inputs": [
-      { "name": "agentId", "type": "uint256", "indexed": true, "internalType": "uint256" },
-      { "name": "riskOracle", "type": "address", "indexed": true, "internalType": "address" },
-      { "name": "updateType", "type": "string", "indexed": true, "internalType": "string" }
-    ]
+    type: 'event',
+    name: 'AgentRegistered',
+    inputs: [
+      { name: 'agentId', type: 'uint256', indexed: true, internalType: 'uint256' },
+      { name: 'riskOracle', type: 'address', indexed: true, internalType: 'address' },
+      { name: 'updateType', type: 'string', indexed: true, internalType: 'string' },
+    ],
   },
   {
-    "type": "event",
-    "name": "AgentAdminSet",
-    "inputs": [
-      { "name": "agentId", "type": "uint256", "indexed": true, "internalType": "uint256" },
-      { "name": "admin", "type": "address", "indexed": true, "internalType": "address" }
-    ]
+    type: 'event',
+    name: 'AgentAdminSet',
+    inputs: [
+      { name: 'agentId', type: 'uint256', indexed: true, internalType: 'uint256' },
+      { name: 'admin', type: 'address', indexed: true, internalType: 'address' },
+    ],
   },
   {
-    "type": "event",
-    "name": "MaxBatchSizeSet",
-    "inputs": [
-      { "name": "maxBatchSize", "type": "uint256", "indexed": true, "internalType": "uint256" }
-    ]
+    type: 'event',
+    name: 'MaxBatchSizeSet',
+    inputs: [{ name: 'maxBatchSize', type: 'uint256', indexed: true, internalType: 'uint256' }],
   },
   {
-    "type": "event",
-    "name": "AgentAddressSet",
-    "inputs": [
-      { "name": "agentId", "type": "uint256", "indexed": true, "internalType": "uint256" },
-      { "name": "agentAddress", "type": "address", "indexed": true, "internalType": "address" }
-    ]
+    type: 'event',
+    name: 'AgentAddressSet',
+    inputs: [
+      { name: 'agentId', type: 'uint256', indexed: true, internalType: 'uint256' },
+      { name: 'agentAddress', type: 'address', indexed: true, internalType: 'address' },
+    ],
   },
   {
-    "type": "event",
-    "name": "AgentPermissionedStatusSet",
-    "inputs": [
-      { "name": "agentId", "type": "uint256", "indexed": true, "internalType": "uint256" },
-      { "name": "isAgentPermissioned", "type": "bool", "indexed": true, "internalType": "bool" }
-    ]
+    type: 'event',
+    name: 'AgentPermissionedStatusSet',
+    inputs: [
+      { name: 'agentId', type: 'uint256', indexed: true, internalType: 'uint256' },
+      { name: 'isAgentPermissioned', type: 'bool', indexed: true, internalType: 'bool' },
+    ],
   },
   {
-    "type": "event",
-    "name": "PermissionedSenderAdded",
-    "inputs": [
-      { "name": "agentId", "type": "uint256", "indexed": true, "internalType": "uint256" },
-      { "name": "sender", "type": "address", "indexed": true, "internalType": "address" }
-    ]
+    type: 'event',
+    name: 'PermissionedSenderAdded',
+    inputs: [
+      { name: 'agentId', type: 'uint256', indexed: true, internalType: 'uint256' },
+      { name: 'sender', type: 'address', indexed: true, internalType: 'address' },
+    ],
   },
   {
-    "type": "event",
-    "name": "PermissionedSenderRemoved",
-    "inputs": [
-      { "name": "agentId", "type": "uint256", "indexed": true, "internalType": "uint256" },
-      { "name": "sender", "type": "address", "indexed": true, "internalType": "address" }
-    ]
+    type: 'event',
+    name: 'PermissionedSenderRemoved',
+    inputs: [
+      { name: 'agentId', type: 'uint256', indexed: true, internalType: 'uint256' },
+      { name: 'sender', type: 'address', indexed: true, internalType: 'address' },
+    ],
   },
   {
-    "type": "event",
-    "name": "AllowedMarketAdded",
-    "inputs": [
-      { "name": "agentId", "type": "uint256", "indexed": true, "internalType": "uint256" },
-      { "name": "market", "type": "address", "indexed": true, "internalType": "address" }
-    ]
+    type: 'event',
+    name: 'AllowedMarketAdded',
+    inputs: [
+      { name: 'agentId', type: 'uint256', indexed: true, internalType: 'uint256' },
+      { name: 'market', type: 'address', indexed: true, internalType: 'address' },
+    ],
   },
   {
-    "type": "event",
-    "name": "AllowedMarketRemoved",
-    "inputs": [
-      { "name": "agentId", "type": "uint256", "indexed": true, "internalType": "uint256" },
-      { "name": "market", "type": "address", "indexed": true, "internalType": "address" }
-    ]
+    type: 'event',
+    name: 'AllowedMarketRemoved',
+    inputs: [
+      { name: 'agentId', type: 'uint256', indexed: true, internalType: 'uint256' },
+      { name: 'market', type: 'address', indexed: true, internalType: 'address' },
+    ],
   },
   {
-    "type": "event",
-    "name": "RestrictedMarketAdded",
-    "inputs": [
-      { "name": "agentId", "type": "uint256", "indexed": true, "internalType": "uint256" },
-      { "name": "market", "type": "address", "indexed": true, "internalType": "address" }
-    ]
+    type: 'event',
+    name: 'RestrictedMarketAdded',
+    inputs: [
+      { name: 'agentId', type: 'uint256', indexed: true, internalType: 'uint256' },
+      { name: 'market', type: 'address', indexed: true, internalType: 'address' },
+    ],
   },
   {
-    "type": "event",
-    "name": "RestrictedMarketRemoved",
-    "inputs": [
-      { "name": "agentId", "type": "uint256", "indexed": true, "internalType": "uint256" },
-      { "name": "market", "type": "address", "indexed": true, "internalType": "address" }
-    ]
+    type: 'event',
+    name: 'RestrictedMarketRemoved',
+    inputs: [
+      { name: 'agentId', type: 'uint256', indexed: true, internalType: 'uint256' },
+      { name: 'market', type: 'address', indexed: true, internalType: 'address' },
+    ],
   },
   {
-    "type": "event",
-    "name": "ExpirationPeriodSet",
-    "inputs": [
-      { "name": "agentId", "type": "uint256", "indexed": true, "internalType": "uint256" },
-      { "name": "expirationPeriod", "type": "uint256", "indexed": true, "internalType": "uint256" }
-    ]
+    type: 'event',
+    name: 'ExpirationPeriodSet',
+    inputs: [
+      { name: 'agentId', type: 'uint256', indexed: true, internalType: 'uint256' },
+      { name: 'expirationPeriod', type: 'uint256', indexed: true, internalType: 'uint256' },
+    ],
   },
   {
-    "type": "event",
-    "name": "AgentEnabledSet",
-    "inputs": [
-      { "name": "agentId", "type": "uint256", "indexed": true, "internalType": "uint256" },
-      { "name": "enable", "type": "bool", "indexed": true, "internalType": "bool" }
-    ]
+    type: 'event',
+    name: 'AgentEnabledSet',
+    inputs: [
+      { name: 'agentId', type: 'uint256', indexed: true, internalType: 'uint256' },
+      { name: 'enable', type: 'bool', indexed: true, internalType: 'bool' },
+    ],
   },
   {
-    "type": "event",
-    "name": "MinimumDelaySet",
-    "inputs": [
-      { "name": "agentId", "type": "uint256", "indexed": true, "internalType": "uint256" },
-      { "name": "minimumDelay", "type": "uint256", "indexed": true, "internalType": "uint256" }
-    ]
+    type: 'event',
+    name: 'MinimumDelaySet',
+    inputs: [
+      { name: 'agentId', type: 'uint256', indexed: true, internalType: 'uint256' },
+      { name: 'minimumDelay', type: 'uint256', indexed: true, internalType: 'uint256' },
+    ],
   },
   {
-    "type": "event",
-    "name": "AgentContextSet",
-    "inputs": [
-      { "name": "agentId", "type": "uint256", "indexed": true, "internalType": "uint256" },
-      { "name": "context", "type": "bytes", "indexed": true, "internalType": "bytes" }
-    ]
+    type: 'event',
+    name: 'AgentContextSet',
+    inputs: [
+      { name: 'agentId', type: 'uint256', indexed: true, internalType: 'uint256' },
+      { name: 'context', type: 'bytes', indexed: true, internalType: 'bytes' },
+    ],
   },
   {
-    "type": "event",
-    "name": "MarketsFromAgentEnabled",
-    "inputs": [
-      { "name": "agentId", "type": "uint256", "indexed": true, "internalType": "uint256" },
-      { "name": "enabled", "type": "bool", "indexed": true, "internalType": "bool" }
-    ]
+    type: 'event',
+    name: 'MarketsFromAgentEnabled',
+    inputs: [
+      { name: 'agentId', type: 'uint256', indexed: true, internalType: 'uint256' },
+      { name: 'enabled', type: 'bool', indexed: true, internalType: 'bool' },
+    ],
   },
   {
-    "type": "event",
-    "name": "UpdateInjected",
-    "inputs": [
-      { "name": "agentId", "type": "uint256", "indexed": true, "internalType": "uint256" },
-      { "name": "market", "type": "address", "indexed": true, "internalType": "address" },
-      { "name": "updateType", "type": "string", "indexed": true, "internalType": "string" },
-      { "name": "updateId", "type": "uint256", "indexed": false, "internalType": "uint256" },
-      { "name": "newValue", "type": "bytes", "indexed": false, "internalType": "bytes" }
-    ]
+    type: 'event',
+    name: 'UpdateInjected',
+    inputs: [
+      { name: 'agentId', type: 'uint256', indexed: true, internalType: 'uint256' },
+      { name: 'market', type: 'address', indexed: true, internalType: 'address' },
+      { name: 'updateType', type: 'string', indexed: true, internalType: 'string' },
+      { name: 'updateId', type: 'uint256', indexed: false, internalType: 'uint256' },
+      { name: 'newValue', type: 'bytes', indexed: false, internalType: 'bytes' },
+    ],
   },
   {
-    "type": "event",
-    "name": "EmissionAdminUpdated",
-    "inputs": [
+    type: 'event',
+    name: 'EmissionAdminUpdated',
+    inputs: [
       {
-        "name": "reward",
-        "type": "address",
-        "indexed": true,
-        "internalType": "address"
+        name: 'reward',
+        type: 'address',
+        indexed: true,
+        internalType: 'address',
       },
       {
-        "name": "oldAdmin",
-        "type": "address",
-        "indexed": true,
-        "internalType": "address"
+        name: 'oldAdmin',
+        type: 'address',
+        indexed: true,
+        internalType: 'address',
       },
       {
-        "name": "newAdmin",
-        "type": "address",
-        "indexed": true,
-        "internalType": "address"
-      }
-    ]
+        name: 'newAdmin',
+        type: 'address',
+        indexed: true,
+        internalType: 'address',
+      },
+    ],
   },
   {
-    "type": "event",
-    "name": "DefaultRangeConfigSet",
-    "inputs": [
-      { "name": "agentHub", "type": "address", "indexed": true, "internalType": "address" },
-      { "name": "agentId", "type": "uint256", "indexed": true, "internalType": "uint256" },
-      { "name": "updateType", "type": "string", "indexed": true, "internalType": "string" },
+    type: 'event',
+    name: 'DefaultRangeConfigSet',
+    inputs: [
+      { name: 'agentHub', type: 'address', indexed: true, internalType: 'address' },
+      { name: 'agentId', type: 'uint256', indexed: true, internalType: 'uint256' },
+      { name: 'updateType', type: 'string', indexed: true, internalType: 'string' },
       {
-        "name": "config",
-        "type": "tuple",
-        "indexed": false,
-        "internalType": "struct IRangeValidationModule.RangeConfig",
-        "components": [
-          { "name": "maxIncrease", "type": "uint120", "internalType": "uint120" },
-          { "name": "maxDecrease", "type": "uint120", "internalType": "uint120" },
-          { "name": "isIncreaseRelative", "type": "bool", "internalType": "bool" },
-          { "name": "isDecreaseRelative", "type": "bool", "internalType": "bool" }
-        ]
-      }
-    ]
+        name: 'config',
+        type: 'tuple',
+        indexed: false,
+        internalType: 'struct IRangeValidationModule.RangeConfig',
+        components: [
+          { name: 'maxIncrease', type: 'uint120', internalType: 'uint120' },
+          { name: 'maxDecrease', type: 'uint120', internalType: 'uint120' },
+          { name: 'isIncreaseRelative', type: 'bool', internalType: 'bool' },
+          { name: 'isDecreaseRelative', type: 'bool', internalType: 'bool' },
+        ],
+      },
+    ],
   },
   {
-    "type": "event",
-    "name": "MarketRangeConfigSet",
-    "inputs": [
-      { "name": "agentHub", "type": "address", "indexed": true, "internalType": "address" },
-      { "name": "agentId", "type": "uint256", "indexed": true, "internalType": "uint256" },
-      { "name": "market", "type": "address", "indexed": true, "internalType": "address" },
-      { "name": "updateType", "type": "string", "indexed": false, "internalType": "string" },
+    type: 'event',
+    name: 'MarketRangeConfigSet',
+    inputs: [
+      { name: 'agentHub', type: 'address', indexed: true, internalType: 'address' },
+      { name: 'agentId', type: 'uint256', indexed: true, internalType: 'uint256' },
+      { name: 'market', type: 'address', indexed: true, internalType: 'address' },
+      { name: 'updateType', type: 'string', indexed: false, internalType: 'string' },
       {
-        "name": "config",
-        "type": "tuple",
-        "indexed": false,
-        "internalType": "struct IRangeValidationModule.RangeConfig",
-        "components": [
-          { "name": "maxIncrease", "type": "uint120", "internalType": "uint120" },
-          { "name": "maxDecrease", "type": "uint120", "internalType": "uint120" },
-          { "name": "isIncreaseRelative", "type": "bool", "internalType": "bool" },
-          { "name": "isDecreaseRelative", "type": "bool", "internalType": "bool" }
-        ]
-      }
-    ]
-  }
+        name: 'config',
+        type: 'tuple',
+        indexed: false,
+        internalType: 'struct IRangeValidationModule.RangeConfig',
+        components: [
+          { name: 'maxIncrease', type: 'uint120', internalType: 'uint120' },
+          { name: 'maxDecrease', type: 'uint120', internalType: 'uint120' },
+          { name: 'isIncreaseRelative', type: 'bool', internalType: 'bool' },
+          { name: 'isDecreaseRelative', type: 'bool', internalType: 'bool' },
+        ],
+      },
+    ],
+  },
 ];
