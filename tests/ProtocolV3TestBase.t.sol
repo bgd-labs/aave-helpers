@@ -197,7 +197,8 @@ contract ProtocolV3TestStorageValidation is ProtocolV3TestBase {
 
   function test_unknownArtifact_logsWarning() public {
     // makeAddr produces an address with no deployed code; getArtifactPathByDeployedCode
-    // cannot resolve it, so the function logs a warning and returns without reverting.
+    // cannot resolve it, so the function vm.getArtifactPathByDeployedCode reverts
+    vm.expectRevert();
     _validateNoPayloadStorageSlots(makeAddr('unknownPayload'));
   }
 }

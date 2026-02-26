@@ -737,25 +737,15 @@ contract ProtocolV3TestBase is RawProtocolV3TestBase, SeatbeltUtils, CommonTestB
    * @dev Validates that a payload contract declares no state variables by inspecting the
    *      compiler-generated storage layout from the build artifact.
    *
-   *      If the artifact cannot be resolved (e.g. the contract was not compiled locally), a
-   *      warning is logged and the check is skipped rather than failing the test.
+   *      If the artifact cannot be resolved (e.g. the contract was not compiled locally), 
+   *      you can skip this test manually by overriding this virtual method in your test
    *
    *      Requires foundry.toml to have:
    *        extra_output = ["storageLayout"]
    *        fs_permissions includes { access = "read", path = "./out" }
    */
-  function _validateNoPayloadStorageSlots(address payload) internal view {
-    string memory artifactPath;
-    try vm.getArtifactPathByDeployedCode(payload.code) returns (string memory path) {
-      artifactPath = path;
-    } catch {
-      console.log(
-        'WARNING: _validateNoPayloadStorageSlots: could not resolve artifact for payload %s, skipping storage slot check',
-        payload
-      );
-      return;
-    }
-
+  function _validateNoPayloadStorageSlots(address payload) internal view virtual {
+    string memory artifactPath = vm.getArtifactPathByDeployedCode(payload.code);
     string memory artifact = vm.readFile(artifactPath);
 
     // vm.parseJson ABI-encodes the JSON value at the given key.
