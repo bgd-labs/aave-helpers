@@ -94,10 +94,10 @@ contract ProtocolV3TestBase is RawProtocolV3TestBase, SeatbeltUtils, CommonTestB
     uint256 gasUsed = startGas - gasleft();
     assertLt(gasUsed, (block.gaslimit * 95) / 100, 'BLOCK_GAS_LIMIT_EXCEEDED'); // 5% is kept as a buffer
 
+    ReserveConfig[] memory configAfter = createConfigurationSnapshot(afterString, pool);
+
     // as executor does delegateCall to the payload, the payload should have no storage variable
     _validateNoPayloadStorageSlots(payload);
-
-    ReserveConfig[] memory configAfter = createConfigurationSnapshot(afterString, pool);
 
     {
       string memory rawDiff = vm.getStateDiffJson();
