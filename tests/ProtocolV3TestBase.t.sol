@@ -180,6 +180,9 @@ contract ProtocolV3TestMantleSnapshot is ProtocolV3TestBase {
       false
     );
   }
+
+  // overriding the storage slot check as payload artifacts does not exists
+  function _validateNoPayloadStorageSlots(address payload) internal view override {}
 }
 
 contract ProtocolV3TestStorageValidation is ProtocolV3TestBase {
