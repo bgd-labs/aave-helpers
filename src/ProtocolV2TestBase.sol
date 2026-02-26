@@ -1002,7 +1002,7 @@ contract ProtocolV2TestBase is CommonTestBase, SeatbeltUtils, DiffUtils {
    * @dev Validates that a payload contract declares no state variables by inspecting the
    *      compiler-generated storage layout from the build artifact.
    *
-   *      If the artifact cannot be resolved (e.g. the contract was not compiled locally), 
+   *      If the artifact cannot be resolved (e.g. the contract was not compiled locally),
    *      you can skip this test manually by overriding this virtual method in your test
    *
    *      Requires foundry.toml to have:
