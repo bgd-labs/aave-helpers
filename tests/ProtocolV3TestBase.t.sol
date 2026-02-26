@@ -13,6 +13,7 @@ import {AaveV3MegaEth} from 'aave-address-book/AaveV3MegaEth.sol';
 import {AaveV3Mantle} from 'aave-address-book/AaveV3Mantle.sol';
 import {AaveV3Fantom} from 'aave-address-book/AaveV3Fantom.sol';
 import {PayloadWithEmit} from './mocks/PayloadWithEmit.sol';
+import {PayloadWithStorage} from './mocks/PayloadWithStorage.sol';
 
 contract ProtocolV3TestBaseTest is ProtocolV3TestBase {
   function setUp() public {
@@ -178,5 +179,25 @@ contract ProtocolV3TestMantleSnapshot is ProtocolV3TestBase {
       false,
       false
     );
+  }
+}
+
+contract ProtocolV3TestStorageValidation is ProtocolV3TestBase {
+  function test_noStorageSlots_passes() public {
+    // PayloadWithEmit has no state variables — should pass silently.
+    _validateNoPayloadStorageSlots(address(new PayloadWithEmit()));
+  }
+
+  function test_withStorageSlots_reverts() public {
+    address payload = address(new PayloadWithStorage());
+    // PayloadWithStorage declares `uint256 internal _randomStorageVariable` — must be rejected.
+    vm.expectRevert();
+    _validateNoPayloadStorageSlots(payload);
+  }
+
+  function test_unknownArtifact_logsWarning() public {
+    // makeAddr produces an address with no deployed code; getArtifactPathByDeployedCode
+    // cannot resolve it, so the function logs a warning and returns without reverting.
+    _validateNoPayloadStorageSlots(makeAddr('unknownPayload'));
   }
 }

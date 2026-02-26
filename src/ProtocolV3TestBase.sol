@@ -94,6 +94,9 @@ contract ProtocolV3TestBase is RawProtocolV3TestBase, SeatbeltUtils, CommonTestB
     uint256 gasUsed = startGas - gasleft();
     assertLt(gasUsed, (block.gaslimit * 95) / 100, 'BLOCK_GAS_LIMIT_EXCEEDED'); // 5% is kept as a buffer
 
+    // as executor does delegateCall to the payload, the payload should have no storage variable
+    _validateNoPayloadStorageSlots(payload);
+
     ReserveConfig[] memory configAfter = createConfigurationSnapshot(afterString, pool);
 
     {
@@ -728,5 +731,50 @@ contract ProtocolV3TestBase is RawProtocolV3TestBase, SeatbeltUtils, CommonTestB
     }
 
     vm.stopPrank();
+  }
+
+  /**
+   * @dev Validates that a payload contract declares no state variables by inspecting the
+   *      compiler-generated storage layout from the build artifact.
+   *
+   *      If the artifact cannot be resolved (e.g. the contract was not compiled locally), a
+   *      warning is logged and the check is skipped rather than failing the test.
+   *
+   *      Requires foundry.toml to have:
+   *        extra_output = ["storageLayout"]
+   *        fs_permissions includes { access = "read", path = "./out" }
+   */
+  function _validateNoPayloadStorageSlots(address payload) internal view {
+    string memory artifactPath;
+    try vm.getArtifactPathByDeployedCode(payload.code) returns (string memory path) {
+      artifactPath = path;
+    } catch {
+      console.log(
+        'WARNING: _validateNoPayloadStorageSlots: could not resolve artifact for payload %s, skipping storage slot check',
+        payload
+      );
+      return;
+    }
+
+    string memory artifact = vm.readFile(artifactPath);
+
+    // vm.parseJson ABI-encodes the JSON value at the given key.
+    // A dynamic array is encoded as [uint256 offset][uint256 length][elements...], so
+    // decoding the first two words as (uint256, uint256) yields (offset, arrayLength).
+    bytes memory storageEncoded = vm.parseJson(artifact, '.storageLayout.storage');
+    (, uint256 storageLength) = abi.decode(storageEncoded, (uint256, uint256));
+
+    require(
+      storageLength == 0,
+      string(
+        abi.encodePacked(
+          'PAYLOAD_MUST_NOT_HAVE_STORAGE_VARIABLES: ',
+          artifactPath,
+          ' declares ',
+          Strings.toString(storageLength),
+          ' storage slot(s)'
+        )
+      )
+    );
   }
 }
