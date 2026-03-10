@@ -1390,4 +1390,269 @@ export const eventDb: AbiEvent[] = [
       },
     ],
   },
+  {
+    anonymous: false,
+    inputs: [
+      { indexed: false, internalType: 'uint8', name: 'leafType', type: 'uint8' },
+      { indexed: false, internalType: 'uint32', name: 'originNetwork', type: 'uint32' },
+      { indexed: false, internalType: 'address', name: 'originAddress', type: 'address' },
+      { indexed: false, internalType: 'uint32', name: 'destinationNetwork', type: 'uint32' },
+      { indexed: false, internalType: 'address', name: 'destinationAddress', type: 'address' },
+      { indexed: false, internalType: 'uint256', name: 'amount', type: 'uint256' },
+      { indexed: false, internalType: 'bytes', name: 'metadata', type: 'bytes' },
+      { indexed: false, internalType: 'uint32', name: 'depositCount', type: 'uint32' },
+    ],
+    name: 'BridgeEvent',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      { indexed: false, internalType: 'uint32', name: 'index', type: 'uint32' },
+      { indexed: false, internalType: 'uint32', name: 'originNetwork', type: 'uint32' },
+      { indexed: false, internalType: 'address', name: 'originAddress', type: 'address' },
+      { indexed: false, internalType: 'address', name: 'destinationAddress', type: 'address' },
+      { indexed: false, internalType: 'uint256', name: 'amount', type: 'uint256' },
+    ],
+    name: 'ClaimEvent',
+    type: 'event',
+  },
+  { anonymous: false, inputs: [], name: 'EmergencyStateActivated', type: 'event' },
+  { anonymous: false, inputs: [], name: 'EmergencyStateDeactivated', type: 'event' },
+  {
+    anonymous: false,
+    inputs: [{ indexed: false, internalType: 'uint8', name: 'version', type: 'uint8' }],
+    name: 'Initialized',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      { indexed: false, internalType: 'uint32', name: 'originNetwork', type: 'uint32' },
+      { indexed: false, internalType: 'address', name: 'originTokenAddress', type: 'address' },
+      { indexed: false, internalType: 'address', name: 'wrappedTokenAddress', type: 'address' },
+      { indexed: false, internalType: 'bytes', name: 'metadata', type: 'bytes' },
+    ],
+    name: 'NewWrappedToken',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      { indexed: false, internalType: 'address', name: 'oldGuardian', type: 'address' },
+      { indexed: false, internalType: 'address', name: 'newGuardian', type: 'address' },
+    ],
+    name: 'GuardianUpdated',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      { indexed: true, internalType: 'address', name: 'asset', type: 'address' },
+      { indexed: false, internalType: 'address', name: 'currentOracle', type: 'address' },
+      { indexed: false, internalType: 'address', name: 'svrOracle', type: 'address' },
+    ],
+    name: 'SvrOracleConfigChanged',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      { indexed: false, internalType: 'address', name: 'previousAdmin', type: 'address' },
+      { indexed: false, internalType: 'address', name: 'newAdmin', type: 'address' },
+    ],
+    name: 'AdminChanged',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [{ indexed: true, internalType: 'address', name: 'implementation', type: 'address' }],
+    name: 'Upgraded',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [{ indexed: false, internalType: 'address', name: 'sender', type: 'address' }],
+    name: 'AllowListAdd',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [{ indexed: false, internalType: 'address', name: 'sender', type: 'address' }],
+    name: 'AllowListRemove',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      { indexed: true, internalType: 'address', name: 'sender', type: 'address' },
+      { indexed: false, internalType: 'uint256', name: 'amount', type: 'uint256' },
+    ],
+    name: 'Burned',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      { indexed: false, internalType: 'uint64', name: 'remoteChainSelector', type: 'uint64' },
+      { indexed: false, internalType: 'bytes', name: 'remoteToken', type: 'bytes' },
+      {
+        components: [
+          { internalType: 'bool', name: 'isEnabled', type: 'bool' },
+          { internalType: 'uint128', name: 'capacity', type: 'uint128' },
+          { internalType: 'uint128', name: 'rate', type: 'uint128' },
+        ],
+        indexed: false,
+        internalType: 'struct RateLimiter.Config',
+        name: 'outboundRateLimiterConfig',
+        type: 'tuple',
+      },
+      {
+        components: [
+          { internalType: 'bool', name: 'isEnabled', type: 'bool' },
+          { internalType: 'uint128', name: 'capacity', type: 'uint128' },
+          { internalType: 'uint128', name: 'rate', type: 'uint128' },
+        ],
+        indexed: false,
+        internalType: 'struct RateLimiter.Config',
+        name: 'inboundRateLimiterConfig',
+        type: 'tuple',
+      },
+    ],
+    name: 'ChainAdded',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      { indexed: false, internalType: 'uint64', name: 'remoteChainSelector', type: 'uint64' },
+      {
+        components: [
+          { internalType: 'bool', name: 'isEnabled', type: 'bool' },
+          { internalType: 'uint128', name: 'capacity', type: 'uint128' },
+          { internalType: 'uint128', name: 'rate', type: 'uint128' },
+        ],
+        indexed: false,
+        internalType: 'struct RateLimiter.Config',
+        name: 'outboundRateLimiterConfig',
+        type: 'tuple',
+      },
+      {
+        components: [
+          { internalType: 'bool', name: 'isEnabled', type: 'bool' },
+          { internalType: 'uint128', name: 'capacity', type: 'uint128' },
+          { internalType: 'uint128', name: 'rate', type: 'uint128' },
+        ],
+        indexed: false,
+        internalType: 'struct RateLimiter.Config',
+        name: 'inboundRateLimiterConfig',
+        type: 'tuple',
+      },
+    ],
+    name: 'ChainConfigured',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      { indexed: false, internalType: 'uint64', name: 'remoteChainSelector', type: 'uint64' },
+    ],
+    name: 'ChainRemoved',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        components: [
+          { internalType: 'bool', name: 'isEnabled', type: 'bool' },
+          { internalType: 'uint128', name: 'capacity', type: 'uint128' },
+          { internalType: 'uint128', name: 'rate', type: 'uint128' },
+        ],
+        indexed: false,
+        internalType: 'struct RateLimiter.Config',
+        name: 'config',
+        type: 'tuple',
+      },
+    ],
+    name: 'ConfigChanged',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      { indexed: true, internalType: 'address', name: 'sender', type: 'address' },
+      { indexed: false, internalType: 'uint256', name: 'amount', type: 'uint256' },
+    ],
+    name: 'Locked',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      { indexed: true, internalType: 'address', name: 'sender', type: 'address' },
+      { indexed: true, internalType: 'address', name: 'recipient', type: 'address' },
+      { indexed: false, internalType: 'uint256', name: 'amount', type: 'uint256' },
+    ],
+    name: 'Minted',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      { indexed: true, internalType: 'address', name: 'from', type: 'address' },
+      { indexed: true, internalType: 'address', name: 'to', type: 'address' },
+    ],
+    name: 'OwnershipTransferRequested',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [{ indexed: false, internalType: 'address', name: 'rateLimitAdmin', type: 'address' }],
+    name: 'RateLimitAdminSet',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      { indexed: true, internalType: 'address', name: 'sender', type: 'address' },
+      { indexed: true, internalType: 'address', name: 'recipient', type: 'address' },
+      { indexed: false, internalType: 'uint256', name: 'amount', type: 'uint256' },
+    ],
+    name: 'Released',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      { indexed: true, internalType: 'uint64', name: 'remoteChainSelector', type: 'uint64' },
+      { indexed: false, internalType: 'bytes', name: 'remotePoolAddress', type: 'bytes' },
+    ],
+    name: 'RemotePoolAdded',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      { indexed: true, internalType: 'uint64', name: 'remoteChainSelector', type: 'uint64' },
+      { indexed: false, internalType: 'bytes', name: 'remotePoolAddress', type: 'bytes' },
+    ],
+    name: 'RemotePoolRemoved',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      { indexed: false, internalType: 'address', name: 'oldRouter', type: 'address' },
+      { indexed: false, internalType: 'address', name: 'newRouter', type: 'address' },
+    ],
+    name: 'RouterUpdated',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [{ indexed: false, internalType: 'uint256', name: 'tokens', type: 'uint256' }],
+    name: 'TokensConsumed',
+    type: 'event',
+  },
 ];
