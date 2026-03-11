@@ -7,7 +7,7 @@ import {AaveV2Ethereum, AaveV2EthereumAssets} from 'aave-address-book/AaveV2Ethe
 import {AaveV2EthereumAMM} from 'aave-address-book/AaveV2EthereumAMM.sol';
 import {IERC20} from 'openzeppelin-contracts/contracts/token/ERC20/IERC20.sol';
 import {PayloadWithEmit} from './mocks/PayloadWithEmit.sol';
-import {PayloadWithStorage} from './mocks/PayloadWithStorage.sol';
+import {StorageWriter} from './mocks/StorageWriter.sol';
 
 contract ProtocolV2TestBaseTest is ProtocolV2TestBase {
   function setUp() public {
@@ -43,22 +43,21 @@ contract ProtocolV2TestE2ETestAsset is ProtocolV2TestBase {
 }
 
 contract ProtocolV2TestStorageValidation is ProtocolV2TestBase {
-  function test_noStorageSlots_passes() public {
-    // PayloadWithEmit has no state variables — should pass silently.
-    _validateNoPayloadStorageSlots(address(new PayloadWithEmit()));
+  function setUp() public {
+    vm.createSelectFork('mainnet', 21858534);
   }
 
-  function test_withStorageSlots_reverts() public {
-    address payload = address(new PayloadWithStorage());
-    // PayloadWithStorage declares `uint256 internal _randomStorageVariable` — must be rejected.
-    vm.expectRevert();
-    _validateNoPayloadStorageSlots(payload);
+  function test_noExecutorStorageChange_passes() public {
+    address executor = makeAddr('executor');
+    vm.startStateDiffRecording();
+    _validateNoExecutorStorageChange(executor);
   }
 
-  function test_unknownArtifact_logsWarning() public {
-    // makeAddr produces an address with no deployed code; getArtifactPathByDeployedCode
-    // cannot resolve it, so the function vm.getArtifactPathByDeployedCode reverts
+  function test_executorStorageChange_reverts() public {
+    StorageWriter writer = new StorageWriter();
+    vm.startStateDiffRecording();
+    writer.writeStorage();
     vm.expectRevert();
-    _validateNoPayloadStorageSlots(makeAddr('unknownPayload'));
+    _validateNoExecutorStorageChange(address(writer));
   }
 }
