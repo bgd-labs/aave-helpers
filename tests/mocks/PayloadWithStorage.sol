@@ -4,13 +4,13 @@ pragma solidity ^0.8.10;
 import {IProposalGenericExecutor} from '../../src/interfaces/IProposalGenericExecutor.sol';
 
 /**
- * @dev Mock payload that incorrectly declares a state variable.
- * Used to test that _validateNoPayloadStorageSlots detects storage variables.
+ * @dev Mock payload that writes to a storage variable during execution.
+ * When delegatecalled by an executor, this modifies the executor's storage.
  */
 contract PayloadWithStorage is IProposalGenericExecutor {
   uint256 internal _randomStorageVariable;
 
   function execute() external {
-    // do nothing just relax
+    _randomStorageVariable = 42;
   }
 }

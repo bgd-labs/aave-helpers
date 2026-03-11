@@ -12,7 +12,8 @@ import {AaveV3Metis} from 'aave-address-book/AaveV3Metis.sol';
 import {AaveV3MegaEth} from 'aave-address-book/AaveV3MegaEth.sol';
 import {AaveV3Mantle} from 'aave-address-book/AaveV3Mantle.sol';
 import {AaveV3Fantom} from 'aave-address-book/AaveV3Fantom.sol';
-import {StorageWriter} from './mocks/StorageWriter.sol';
+import {PayloadWithEmit} from './mocks/PayloadWithEmit.sol';
+import {PayloadWithStorage} from './mocks/PayloadWithStorage.sol';
 
 contract ProtocolV3TestBaseTest is ProtocolV3TestBase {
   function setUp() public {
@@ -190,18 +191,24 @@ contract ProtocolV3TestStorageValidation is ProtocolV3TestBase {
   }
 
   function test_noExecutorStorageChange_passes() public {
-    address executor = makeAddr('executor');
-    // Start recording, do nothing that writes to executor, then validate
-    vm.startStateDiffRecording();
-    _validateNoExecutorStorageChange(executor);
+    defaultTest(
+      'V3StorageValidation_pass',
+      AaveV3Ethereum.POOL,
+      address(new PayloadWithEmit()),
+      false,
+      false
+    );
   }
 
   function test_executorStorageChange_reverts() public {
-    StorageWriter writer = new StorageWriter();
-    vm.startStateDiffRecording();
-    // Actual EVM SSTORE on writer's storage — should be caught
-    writer.writeStorage();
+    address payload = address(new PayloadWithStorage());
     vm.expectRevert();
-    _validateNoExecutorStorageChange(address(writer));
+    this.defaultTest(
+      'V3StorageValidation_fail',
+      AaveV3Ethereum.POOL,
+      payload,
+      false,
+      false
+    );
   }
 }
