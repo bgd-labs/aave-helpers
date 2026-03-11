@@ -21,6 +21,7 @@ import {ILegacyDefaultInterestRateStrategy} from './dependencies/ILegacyDefaultI
 import {Strings} from 'openzeppelin-contracts/contracts/utils/Strings.sol';
 import {SeatbeltUtils} from './SeatbeltUtils.sol';
 import {GovV3Helpers} from './GovV3Helpers.sol';
+import {IPayloadsControllerCore, PayloadsControllerUtils} from 'aave-address-book/GovernanceV3.sol';
 
 struct InterestStrategyValues {
   address addressesProvider;
@@ -95,6 +96,16 @@ contract ProtocolV3TestBase is RawProtocolV3TestBase, SeatbeltUtils, CommonTestB
     assertLt(gasUsed, (block.gaslimit * 95) / 100, 'BLOCK_GAS_LIMIT_EXCEEDED'); // 5% is kept as a buffer
 
     ReserveConfig[] memory configAfter = createConfigurationSnapshot(afterString, pool);
+
+    // as executor does delegateCall to the payload, the executor should have no storage changes
+    {
+      IPayloadsControllerCore pc = GovV3Helpers.getPayloadsController(pool, block.chainid);
+      _validateNoExecutorStorageChange(
+        pc
+          .getExecutorSettingsByAccessControl(PayloadsControllerUtils.AccessControl.Level_1)
+          .executor
+      );
+    }
 
     {
       string memory rawDiff = vm.getStateDiffJson();
@@ -728,5 +739,33 @@ contract ProtocolV3TestBase is RawProtocolV3TestBase, SeatbeltUtils, CommonTestB
     }
 
     vm.stopPrank();
+  }
+
+  /**
+   * @dev Validates that no storage was written to the executor contract during payload execution.
+   *      Since the executor delegatecalls the payload, any storage variable in the payload
+   *      (or any contract it delegatecalls) would modify the executor's storage.
+   *      This check inspects the actual state diff rather than the payload's artifact,
+   *      so it also catches indirect delegatecall chains.
+   *
+   *      Requires vm.startStateDiffRecording() to have been called before payload execution.
+   */
+  function _validateNoExecutorStorageChange(address executor) internal view virtual {
+    Vm.StorageAccess[] memory storageAccesses = vm.getStorageAccesses();
+    for (uint256 i = 0; i < storageAccesses.length; i++) {
+      require(
+        !(storageAccesses[i].account == executor &&
+          storageAccesses[i].isWrite &&
+          !storageAccesses[i].reverted),
+        string(
+          abi.encodePacked(
+            'EXECUTOR_MUST_NOT_HAVE_STORAGE_CHANGES: slot ',
+            Strings.toHexString(uint256(storageAccesses[i].slot)),
+            ' was modified on executor ',
+            Strings.toHexString(uint160(executor), 20)
+          )
+        )
+      );
+    }
   }
 }

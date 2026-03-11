@@ -7,6 +7,7 @@ import {ReserveConfiguration} from 'aave-v3-origin/contracts/protocol/libraries/
 import {IERC20} from 'openzeppelin-contracts/contracts/token/ERC20/IERC20.sol';
 import {IERC20Metadata} from 'openzeppelin-contracts/contracts/token/ERC20/extensions/IERC20Metadata.sol';
 import {SafeERC20} from 'openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol';
+import {Strings} from 'openzeppelin-contracts/contracts/utils/Strings.sol';
 import {AaveV2EthereumAMM} from 'aave-address-book/AaveV2EthereumAMM.sol';
 import {AaveV2EthereumAssets} from 'aave-address-book/AaveV2Ethereum.sol';
 import {DiffUtils} from './DiffUtils.sol';
@@ -17,6 +18,7 @@ import {CommonTestBase, ReserveTokens} from './CommonTestBase.sol';
 import {ProxyHelpers} from 'aave-v3-origin/../tests/utils/ProxyHelpers.sol';
 import {SeatbeltUtils} from './SeatbeltUtils.sol';
 import {GovV3Helpers} from './GovV3Helpers.sol';
+import {IPayloadsControllerCore, PayloadsControllerUtils} from 'aave-address-book/GovernanceV3.sol';
 
 struct ReserveConfig {
   string symbol;
@@ -85,6 +87,17 @@ contract ProtocolV2TestBase is CommonTestBase, SeatbeltUtils, DiffUtils {
 
     string memory afterString = string(abi.encodePacked(reportName, '_after'));
     ReserveConfig[] memory configAfter = createConfigurationSnapshot(afterString, pool);
+
+    // as executor does delegateCall to the payload, the executor should have no storage changes
+    {
+      IPayloadsControllerCore pc = GovV3Helpers.getPayloadsController(block.chainid);
+      _validateNoExecutorStorageChange(
+        pc
+          .getExecutorSettingsByAccessControl(PayloadsControllerUtils.AccessControl.Level_1)
+          .executor
+      );
+    }
+
     vm.writeJson(
       vm.serializeString('root', 'raw', rawDiff), // output
       string(abi.encodePacked('./reports/', afterString, '.json'))
@@ -991,6 +1004,34 @@ contract ProtocolV2TestBase is CommonTestBase, SeatbeltUtils, DiffUtils {
       oracle.getSourceOfAsset(asset) == expectedSource,
       '_validateAssetSourceOnOracle() : INVALID_PRICE_SOURCE'
     );
+  }
+
+  /**
+   * @dev Validates that no storage was written to the executor contract during payload execution.
+   *      Since the executor delegatecalls the payload, any storage variable in the payload
+   *      (or any contract it delegatecalls) would modify the executor's storage.
+   *      This check inspects the actual state diff rather than the payload's artifact,
+   *      so it also catches indirect delegatecall chains.
+   *
+   *      Requires vm.startStateDiffRecording() to have been called before payload execution.
+   */
+  function _validateNoExecutorStorageChange(address executor) internal view virtual {
+    Vm.StorageAccess[] memory storageAccesses = vm.getStorageAccesses();
+    for (uint256 i = 0; i < storageAccesses.length; i++) {
+      require(
+        !(storageAccesses[i].account == executor &&
+          storageAccesses[i].isWrite &&
+          !storageAccesses[i].reverted),
+        string(
+          abi.encodePacked(
+            'EXECUTOR_MUST_NOT_HAVE_STORAGE_CHANGES: slot ',
+            Strings.toHexString(uint256(storageAccesses[i].slot)),
+            ' was modified on executor ',
+            Strings.toHexString(uint160(executor), 20)
+          )
+        )
+      );
+    }
   }
 
   function _isInUint256Array(

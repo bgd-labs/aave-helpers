@@ -7,6 +7,7 @@ import {AaveV2Ethereum, AaveV2EthereumAssets} from 'aave-address-book/AaveV2Ethe
 import {AaveV2EthereumAMM} from 'aave-address-book/AaveV2EthereumAMM.sol';
 import {IERC20} from 'openzeppelin-contracts/contracts/token/ERC20/IERC20.sol';
 import {PayloadWithEmit} from './mocks/PayloadWithEmit.sol';
+import {PayloadWithStorage} from './mocks/PayloadWithStorage.sol';
 
 contract ProtocolV2TestBaseTest is ProtocolV2TestBase {
   function setUp() public {
@@ -38,5 +39,27 @@ contract ProtocolV2TestE2ETestAsset is ProtocolV2TestBase {
 
   function test_defaultTest() public {
     defaultTest('AMMTEST', AaveV2EthereumAMM.POOL, address(new PayloadWithEmit()), false, false);
+  }
+}
+
+contract ProtocolV2TestStorageValidation is ProtocolV2TestBase {
+  function setUp() public {
+    vm.createSelectFork('mainnet', 21858534);
+  }
+
+  function test_noExecutorStorageChange_passes() public {
+    defaultTest(
+      'V2StorageValidation_pass',
+      AaveV2Ethereum.POOL,
+      address(new PayloadWithEmit()),
+      false,
+      false
+    );
+  }
+
+  function test_executorStorageChange_reverts() public {
+    address payload = address(new PayloadWithStorage());
+    vm.expectRevert();
+    this.defaultTest('V2StorageValidation_fail', AaveV2Ethereum.POOL, payload, false, false);
   }
 }

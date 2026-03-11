@@ -13,6 +13,7 @@ import {AaveV3MegaEth} from 'aave-address-book/AaveV3MegaEth.sol';
 import {AaveV3Mantle} from 'aave-address-book/AaveV3Mantle.sol';
 import {AaveV3Fantom} from 'aave-address-book/AaveV3Fantom.sol';
 import {PayloadWithEmit} from './mocks/PayloadWithEmit.sol';
+import {PayloadWithStorage} from './mocks/PayloadWithStorage.sol';
 
 contract ProtocolV3TestBaseTest is ProtocolV3TestBase {
   function setUp() public {
@@ -178,5 +179,30 @@ contract ProtocolV3TestMantleSnapshot is ProtocolV3TestBase {
       false,
       false
     );
+  }
+
+  // overriding the executor storage check as payload artifacts does not exists
+  function _validateNoExecutorStorageChange(address) internal view override {}
+}
+
+contract ProtocolV3TestStorageValidation is ProtocolV3TestBase {
+  function setUp() public {
+    vm.createSelectFork('mainnet', 21858534);
+  }
+
+  function test_noExecutorStorageChange_passes() public {
+    defaultTest(
+      'V3StorageValidation_pass',
+      AaveV3Ethereum.POOL,
+      address(new PayloadWithEmit()),
+      false,
+      false
+    );
+  }
+
+  function test_executorStorageChange_reverts() public {
+    address payload = address(new PayloadWithStorage());
+    vm.expectRevert();
+    this.defaultTest('V3StorageValidation_fail', AaveV3Ethereum.POOL, payload, false, false);
   }
 }
