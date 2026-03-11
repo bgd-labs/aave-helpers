@@ -60,12 +60,6 @@ contract ProtocolV2TestStorageValidation is ProtocolV2TestBase {
   function test_executorStorageChange_reverts() public {
     address payload = address(new PayloadWithStorage());
     vm.expectRevert();
-    this.defaultTest(
-      'V2StorageValidation_fail',
-      AaveV2Ethereum.POOL,
-      payload,
-      false,
-      false
-    );
+    this.defaultTest('V2StorageValidation_fail', AaveV2Ethereum.POOL, payload, false, false);
   }
 }

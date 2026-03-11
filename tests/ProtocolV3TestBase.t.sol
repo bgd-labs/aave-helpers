@@ -203,12 +203,6 @@ contract ProtocolV3TestStorageValidation is ProtocolV3TestBase {
   function test_executorStorageChange_reverts() public {
     address payload = address(new PayloadWithStorage());
     vm.expectRevert();
-    this.defaultTest(
-      'V3StorageValidation_fail',
-      AaveV3Ethereum.POOL,
-      payload,
-      false,
-      false
-    );
+    this.defaultTest('V3StorageValidation_fail', AaveV3Ethereum.POOL, payload, false, false);
   }
 }
