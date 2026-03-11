@@ -1,3 +1,8 @@
+---
+name: add-events
+description: Adds new events to the eventDb
+---
+
 # Add Events from Explorer
 
 Adds missing ABI events from a verified contract to the event database.
@@ -32,4 +37,10 @@ When the user wants to add events from a block explorer URL (e.g. etherscan, pol
    cd /Volumes/sensitive/BGD/aave-helpers/packages/aave-helpers-js && npx tsx scripts/add-events.ts <chainId> <address>
    ```
 
-3. Report the results to the user (how many events were added, which ones).
+3. Run lint fix:
+
+   ```bash
+   cd /Volumes/sensitive/BGD/aave-helpers && npm run lint:fix
+   ```
+
+4. Report the results to the user (how many events were added, which ones).
