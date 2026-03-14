@@ -7,6 +7,7 @@ import {IERC20} from 'openzeppelin-contracts/contracts/token/ERC20/IERC20.sol';
 import {IERC20Metadata} from 'openzeppelin-contracts/contracts/token/ERC20/extensions/IERC20Metadata.sol';
 import {SafeERC20} from 'openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol';
 import {ReserveConfiguration} from 'aave-v3-origin/contracts/protocol/libraries/configuration/ReserveConfiguration.sol';
+import {EModeConfiguration} from 'aave-v3-origin/contracts/protocol/libraries/configuration/EModeConfiguration.sol';
 import {PercentageMath} from 'aave-v3-origin/contracts/protocol/libraries/math/PercentageMath.sol';
 import {WadRayMath} from 'aave-v3-origin/contracts/protocol/libraries/math/WadRayMath.sol';
 import {IDefaultInterestRateStrategyV2} from 'aave-v3-origin/contracts/interfaces/IDefaultInterestRateStrategyV2.sol';
@@ -127,13 +128,14 @@ contract ProtocolV3TestBase is RawProtocolV3TestBase, SeatbeltUtils, CommonTestB
       );
     }
 
-    configChangePlausibilityTest(configBefore, configAfter);
+    configChangePlausibilityTest(pool, configBefore, configAfter);
 
     if (runE2E) e2eTest(pool);
     return (configBefore, configAfter);
   }
 
   function configChangePlausibilityTest(
+    IPool pool,
     ReserveConfig[] memory configBefore,
     ReserveConfig[] memory configAfter
   ) public view {
@@ -144,10 +146,16 @@ contract ProtocolV3TestBase is RawProtocolV3TestBase, SeatbeltUtils, CommonTestB
       if (i < configsBeforeLength) {
         // borrow increase should only happen on assets with borrowing enabled
         // unless it is setting a borrow cap for the first time
+        // or the asset is borrowable in an e-mode (matching ValidationLogic.validateBorrow)
         if (
           configBefore[i].borrowCap < configAfter[i].borrowCap && configBefore[i].borrowCap != 0
         ) {
-          require(configAfter[i].borrowingEnabled, 'PL_BORROW_CAP_BORROW_DISABLED');
+          if (!configAfter[i].borrowingEnabled) {
+            require(
+              _isBorrowableInAnyEMode(pool, configAfter[i].underlying),
+              'PL_BORROW_CAP_BORROW_DISABLED'
+            );
+          }
         }
       } else {
         // at least newly listed assets should never have a supply cap exceeding total supply
@@ -167,6 +175,20 @@ contract ProtocolV3TestBase is RawProtocolV3TestBase, SeatbeltUtils, CommonTestB
         require(configAfter[i].borrowCap <= configAfter[i].supplyCap, 'PL_SUPPLY_LT_BORROW');
       }
     }
+  }
+
+  function _isBorrowableInAnyEMode(IPool pool, address asset) internal view returns (bool) {
+    uint16 reserveId = pool.getReserveData(asset).id;
+    for (uint256 categoryId = 1; categoryId <= 255; categoryId++) {
+      uint128 borrowableBitmap = pool.getEModeCategoryBorrowableBitmap(uint8(categoryId));
+      if (
+        borrowableBitmap != 0 &&
+        EModeConfiguration.isReserveEnabledOnBitmap(borrowableBitmap, reserveId)
+      ) {
+        return true;
+      }
+    }
+    return false;
   }
 
   /**

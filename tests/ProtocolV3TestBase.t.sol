@@ -3,6 +3,7 @@ pragma solidity ^0.8.0;
 
 import 'forge-std/Test.sol';
 import {ProtocolV3TestBase, ReserveConfig} from '../src/ProtocolV3TestBase.sol';
+import {IPool, IPoolAddressesProvider, IPoolConfigurator} from 'aave-address-book/AaveV3.sol';
 import {AaveV3Ethereum} from 'aave-address-book/AaveV3Ethereum.sol';
 import {AaveV3Polygon, AaveV3PolygonAssets} from 'aave-address-book/AaveV3Polygon.sol';
 import {AaveV3Optimism, AaveV3OptimismAssets} from 'aave-address-book/AaveV3Optimism.sol';
@@ -183,6 +184,100 @@ contract ProtocolV3TestMantleSnapshot is ProtocolV3TestBase {
 
   // overriding the executor storage check as payload artifacts does not exists
   function _validateNoExecutorStorageChange(address) internal view override {}
+}
+
+contract ProtocolV3TestPlausibilityEMode is ProtocolV3TestBase {
+  function setUp() public {
+    vm.createSelectFork('mainnet', 24655671);
+  }
+
+  function test_borrowCapIncrease_borrowDisabled_noEMode_reverts() public {
+    ReserveConfig[] memory configsBefore = _getReservesConfigs(AaveV3Ethereum.POOL);
+    ReserveConfig[] memory configsAfter = _getReservesConfigs(AaveV3Ethereum.POOL);
+
+    // pick first asset that has borrowing enabled and a borrow cap
+    uint256 idx;
+    for (uint256 i; i < configsAfter.length; i++) {
+      if (configsAfter[i].borrowingEnabled && configsAfter[i].borrowCap > 0) {
+        idx = i;
+        break;
+      }
+    }
+
+    // simulate: borrowing disabled, borrow cap increased
+    configsAfter[idx].borrowingEnabled = false;
+    configsAfter[idx].borrowCap = configsBefore[idx].borrowCap + 1;
+
+    // disable borrowing on-chain so _isBorrowableInAnyEMode reads real state
+    IPoolAddressesProvider provider = IPoolAddressesProvider(
+      AaveV3Ethereum.POOL.ADDRESSES_PROVIDER()
+    );
+    IPoolConfigurator configurator = IPoolConfigurator(provider.getPoolConfigurator());
+    vm.startPrank(provider.getACLAdmin());
+    configurator.setReserveBorrowing(configsAfter[idx].underlying, false);
+    // remove from all e-mode categories
+    uint16 reserveId = AaveV3Ethereum.POOL.getReserveData(configsAfter[idx].underlying).id;
+    for (uint256 cat = 1; cat <= 255; cat++) {
+      uint128 bitmap = AaveV3Ethereum.POOL.getEModeCategoryBorrowableBitmap(uint8(cat));
+      if (bitmap != 0 && (bitmap >> reserveId) & 1 != 0) {
+        configurator.setAssetBorrowableInEMode(configsAfter[idx].underlying, uint8(cat), false);
+      }
+    }
+    vm.stopPrank();
+
+    vm.expectRevert('PL_BORROW_CAP_BORROW_DISABLED');
+    this.configChangePlausibilityTest(AaveV3Ethereum.POOL, configsBefore, configsAfter);
+  }
+
+  function test_borrowCapIncrease_borrowDisabled_eModeBorrowable_passes() public {
+    ReserveConfig[] memory configsBefore = _getReservesConfigs(AaveV3Ethereum.POOL);
+    ReserveConfig[] memory configsAfter = _getReservesConfigs(AaveV3Ethereum.POOL);
+
+    uint256 idx;
+    for (uint256 i; i < configsAfter.length; i++) {
+      if (configsAfter[i].borrowingEnabled && configsAfter[i].borrowCap > 0) {
+        idx = i;
+        break;
+      }
+    }
+
+    // simulate: borrowing disabled, borrow cap increased
+    configsAfter[idx].borrowingEnabled = false;
+    configsAfter[idx].borrowCap = configsBefore[idx].borrowCap + 1;
+
+    IPoolAddressesProvider provider = IPoolAddressesProvider(
+      AaveV3Ethereum.POOL.ADDRESSES_PROVIDER()
+    );
+    IPoolConfigurator configurator = IPoolConfigurator(provider.getPoolConfigurator());
+    vm.startPrank(provider.getACLAdmin());
+    // disable standard borrowing
+    configurator.setReserveBorrowing(configsAfter[idx].underlying, false);
+    // ensure asset is borrowable in e-mode category 1
+    // first ensure category 1 exists
+    configurator.setEModeCategory(1, 90_00, 93_00, 101_00, 'test');
+    configurator.setAssetBorrowableInEMode(configsAfter[idx].underlying, 1, true);
+    vm.stopPrank();
+
+    // should pass because asset is borrowable in e-mode
+    this.configChangePlausibilityTest(AaveV3Ethereum.POOL, configsBefore, configsAfter);
+  }
+
+  function test_borrowCapIncrease_borrowEnabled_passes() public {
+    ReserveConfig[] memory configsBefore = _getReservesConfigs(AaveV3Ethereum.POOL);
+    ReserveConfig[] memory configsAfter = _getReservesConfigs(AaveV3Ethereum.POOL);
+
+    uint256 idx;
+    for (uint256 i; i < configsAfter.length; i++) {
+      if (configsAfter[i].borrowingEnabled && configsAfter[i].borrowCap > 0) {
+        idx = i;
+        break;
+      }
+    }
+
+    // borrow cap increased, borrowing still enabled — should pass
+    configsAfter[idx].borrowCap = configsBefore[idx].borrowCap + 1;
+    this.configChangePlausibilityTest(AaveV3Ethereum.POOL, configsBefore, configsAfter);
+  }
 }
 
 contract ProtocolV3TestStorageValidation is ProtocolV3TestBase {
