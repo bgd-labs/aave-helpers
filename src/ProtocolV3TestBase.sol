@@ -96,18 +96,6 @@ contract ProtocolV3TestBase is RawProtocolV3TestBase, SeatbeltUtils, CommonTestB
     uint256 gasUsed = startGas - gasleft();
     assertLt(gasUsed, (block.gaslimit * 95) / 100, 'BLOCK_GAS_LIMIT_EXCEEDED'); // 5% is kept as a buffer
 
-    ReserveConfig[] memory configAfter = createConfigurationSnapshot(afterString, pool);
-
-    // as executor does delegateCall to the payload, the executor should have no storage changes
-    {
-      IPayloadsControllerCore pc = GovV3Helpers.getPayloadsController(pool, block.chainid);
-      _validateNoExecutorStorageChange(
-        pc
-          .getExecutorSettingsByAccessControl(PayloadsControllerUtils.AccessControl.Level_1)
-          .executor
-      );
-    }
-
     {
       string memory rawDiff = vm.getStateDiffJson();
       vm.writeJson(rawDiff, string(abi.encodePacked('./reports/', afterString, '.json')), '$.raw');
@@ -119,6 +107,16 @@ contract ProtocolV3TestBase is RawProtocolV3TestBase, SeatbeltUtils, CommonTestB
       );
     }
 
+    // as executor does delegateCall to the payload, the executor should have no storage changes
+    {
+      IPayloadsControllerCore pc = GovV3Helpers.getPayloadsController(pool, block.chainid);
+      _validateNoExecutorStorageChange(
+        pc
+          .getExecutorSettingsByAccessControl(PayloadsControllerUtils.AccessControl.Level_1)
+          .executor
+      );
+    }
+
     diffReports(beforeString, afterString);
     if (runSeatbelt) {
       generateSeatbeltReport(
@@ -127,6 +125,8 @@ contract ProtocolV3TestBase is RawProtocolV3TestBase, SeatbeltUtils, CommonTestB
         payload.code
       );
     }
+
+    ReserveConfig[] memory configAfter = createConfigurationSnapshot(afterString, pool);
 
     configChangePlausibilityTest(pool, configBefore, configAfter);
 
