@@ -117,6 +117,8 @@ contract ProtocolV3TestBase is RawProtocolV3TestBase, SeatbeltUtils, CommonTestB
       );
     }
 
+    ReserveConfig[] memory configAfter = createConfigurationSnapshot(afterString, pool);
+
     diffReports(beforeString, afterString);
     if (runSeatbelt) {
       generateSeatbeltReport(
@@ -125,8 +127,6 @@ contract ProtocolV3TestBase is RawProtocolV3TestBase, SeatbeltUtils, CommonTestB
         payload.code
       );
     }
-
-    ReserveConfig[] memory configAfter = createConfigurationSnapshot(afterString, pool);
 
     configChangePlausibilityTest(pool, configBefore, configAfter);
 
