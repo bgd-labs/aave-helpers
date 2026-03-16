@@ -98,12 +98,6 @@ contract ProtocolV3TestBase is RawProtocolV3TestBase, SeatbeltUtils, CommonTestB
       assertLt(gasUsed, (block.gaslimit * 95) / 100, 'BLOCK_GAS_LIMIT_EXCEEDED'); // 5% is kept as a buffer
     }
 
-    string memory rawDiff = vm.getStateDiffJson();
-    string memory logsJson = vm.getRecordedLogsJson();
-    ReserveConfig[] memory configAfter = createConfigurationSnapshot(afterString, pool);
-    vm.writeJson(rawDiff, string(abi.encodePacked('./reports/', afterString, '.json')), '$.raw');
-    vm.writeJson(logsJson, string(abi.encodePacked('./reports/', afterString, '.json')), '$.logs');
-
     // as executor does delegateCall to the payload, the executor should have no storage changes
     {
       IPayloadsControllerCore pc = GovV3Helpers.getPayloadsController(pool, block.chainid);
@@ -113,6 +107,12 @@ contract ProtocolV3TestBase is RawProtocolV3TestBase, SeatbeltUtils, CommonTestB
           .executor
       );
     }
+
+    string memory rawDiff = vm.getStateDiffJson();
+    string memory logsJson = vm.getRecordedLogsJson();
+    ReserveConfig[] memory configAfter = createConfigurationSnapshot(afterString, pool);
+    vm.writeJson(rawDiff, string(abi.encodePacked('./reports/', afterString, '.json')), '$.raw');
+    vm.writeJson(logsJson, string(abi.encodePacked('./reports/', afterString, '.json')), '$.logs');
 
     diffReports(beforeString, afterString);
     if (runSeatbelt) {
