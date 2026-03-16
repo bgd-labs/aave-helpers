@@ -86,27 +86,23 @@ contract ProtocolV3TestBase is RawProtocolV3TestBase, SeatbeltUtils, CommonTestB
     ReserveConfig[] memory configBefore = createConfigurationSnapshot(beforeString, pool);
     string memory afterString = string(abi.encodePacked(reportName, '_after'));
 
-    uint256 startGas = gasleft();
-
-    vm.startStateDiffRecording();
-    vm.recordLogs();
-
-    executePayload(vm, payload, pool);
-
-    uint256 gasUsed = startGas - gasleft();
-    assertLt(gasUsed, (block.gaslimit * 95) / 100, 'BLOCK_GAS_LIMIT_EXCEEDED'); // 5% is kept as a buffer
-
     {
-      vm.writeJson('{}', string(abi.encodePacked('./reports/', afterString, '.json')));
-      string memory rawDiff = vm.getStateDiffJson();
-      vm.writeJson(rawDiff, string(abi.encodePacked('./reports/', afterString, '.json')), '$.raw');
-      string memory logsJson = vm.getRecordedLogsJson();
-      vm.writeJson(
-        logsJson,
-        string(abi.encodePacked('./reports/', afterString, '.json')),
-        '$.logs'
-      );
+      uint256 startGas = gasleft();
+
+      vm.startStateDiffRecording();
+      vm.recordLogs();
+
+      executePayload(vm, payload, pool);
+
+      uint256 gasUsed = startGas - gasleft();
+      assertLt(gasUsed, (block.gaslimit * 95) / 100, 'BLOCK_GAS_LIMIT_EXCEEDED'); // 5% is kept as a buffer
     }
+
+    string memory rawDiff = vm.getStateDiffJson();
+    string memory logsJson = vm.getRecordedLogsJson();
+    ReserveConfig[] memory configAfter = createConfigurationSnapshot(afterString, pool);
+    vm.writeJson(rawDiff, string(abi.encodePacked('./reports/', afterString, '.json')), '$.raw');
+    vm.writeJson(logsJson, string(abi.encodePacked('./reports/', afterString, '.json')), '$.logs');
 
     // as executor does delegateCall to the payload, the executor should have no storage changes
     {
@@ -117,8 +113,6 @@ contract ProtocolV3TestBase is RawProtocolV3TestBase, SeatbeltUtils, CommonTestB
           .executor
       );
     }
-
-    ReserveConfig[] memory configAfter = createConfigurationSnapshot(afterString, pool);
 
     diffReports(beforeString, afterString);
     if (runSeatbelt) {
