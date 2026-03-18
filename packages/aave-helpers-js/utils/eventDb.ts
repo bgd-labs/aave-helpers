@@ -2202,4 +2202,175 @@ export const eventDb: AbiEvent[] = [
     name: 'Withdraw',
     type: 'event',
   },
+  {
+    anonymous: false,
+    inputs: [
+      { indexed: true, internalType: 'address', name: 'caller', type: 'address' },
+      { indexed: true, internalType: 'address', name: 'token', type: 'address' },
+      { indexed: true, internalType: 'address', name: 'to', type: 'address' },
+      { indexed: false, internalType: 'uint256', name: 'amount', type: 'uint256' },
+    ],
+    name: 'ERC20Rescued',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      { indexed: false, internalType: 'address', name: 'oldAddress', type: 'address' },
+      { indexed: false, internalType: 'address', name: 'newAddress', type: 'address' },
+    ],
+    name: 'LimitOrderPriceCheckerUpdated',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      { indexed: true, internalType: 'address', name: 'fromToken', type: 'address' },
+      { indexed: true, internalType: 'address', name: 'toToken', type: 'address' },
+      { indexed: false, internalType: 'uint256', name: 'amount', type: 'uint256' },
+      { indexed: false, internalType: 'uint256', name: 'minAmountOut', type: 'uint256' },
+    ],
+    name: 'LimitSwapRequested',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      { indexed: false, internalType: 'address', name: 'oldAddress', type: 'address' },
+      { indexed: false, internalType: 'address', name: 'newAddress', type: 'address' },
+    ],
+    name: 'MilkmanAddressUpdated',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      { indexed: true, internalType: 'address', name: 'caller', type: 'address' },
+      { indexed: true, internalType: 'address', name: 'to', type: 'address' },
+      { indexed: false, internalType: 'uint256', name: 'amount', type: 'uint256' },
+    ],
+    name: 'NativeTokensRescued',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      { indexed: false, internalType: 'address', name: 'oldAddress', type: 'address' },
+      { indexed: false, internalType: 'address', name: 'newAddress', type: 'address' },
+    ],
+    name: 'PriceCheckerUpdated',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      { indexed: false, internalType: 'address', name: 'oldAddress', type: 'address' },
+      { indexed: false, internalType: 'address', name: 'newAddress', type: 'address' },
+    ],
+    name: 'RelayerAddressUpdated',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      { indexed: true, internalType: 'address', name: 'fromToken', type: 'address' },
+      { indexed: true, internalType: 'address', name: 'toToken', type: 'address' },
+      { indexed: false, internalType: 'bool', name: 'allowed', type: 'bool' },
+    ],
+    name: 'SetSwappablePair',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      { indexed: true, internalType: 'address', name: 'token', type: 'address' },
+      { indexed: true, internalType: 'address', name: 'oracle', type: 'address' },
+    ],
+    name: 'SetTokenOracle',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      { indexed: true, internalType: 'address', name: 'fromToken', type: 'address' },
+      { indexed: true, internalType: 'address', name: 'toToken', type: 'address' },
+      { indexed: false, internalType: 'uint256', name: 'amount', type: 'uint256' },
+    ],
+    name: 'SwapCanceled',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      { indexed: true, internalType: 'address', name: 'fromToken', type: 'address' },
+      { indexed: true, internalType: 'address', name: 'toToken', type: 'address' },
+      { indexed: false, internalType: 'address', name: 'fromOracle', type: 'address' },
+      { indexed: false, internalType: 'address', name: 'toOracle', type: 'address' },
+      { indexed: false, internalType: 'uint256', name: 'amount', type: 'uint256' },
+      { indexed: false, internalType: 'uint256', name: 'slippage', type: 'uint256' },
+    ],
+    name: 'SwapRequested',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      { indexed: true, internalType: 'address', name: 'fromToken', type: 'address' },
+      { indexed: true, internalType: 'address', name: 'toToken', type: 'address' },
+      { indexed: false, internalType: 'uint256', name: 'totalAmount', type: 'uint256' },
+    ],
+    name: 'TWAPSwapCanceled',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      { indexed: true, internalType: 'address', name: 'fromToken', type: 'address' },
+      { indexed: true, internalType: 'address', name: 'toToken', type: 'address' },
+      { indexed: false, internalType: 'uint256', name: 'totalAmount', type: 'uint256' },
+    ],
+    name: 'TWAPSwapRequested',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      { indexed: true, internalType: 'address', name: 'token', type: 'address' },
+      { indexed: false, internalType: 'uint256', name: 'budget', type: 'uint256' },
+    ],
+    name: 'UpdatedTokenBudget',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      { indexed: false, internalType: 'address', name: 'token', type: 'address' },
+      { indexed: false, internalType: 'uint256', name: 'amount', type: 'uint256' },
+    ],
+    name: 'Bridge',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      { indexed: false, internalType: 'bytes', name: 'proof', type: 'bytes' },
+    ],
+    name: 'Exit',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [],
+    name: 'FailedToSendETH',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      { indexed: false, internalType: 'address', name: 'token', type: 'address' },
+      { indexed: false, internalType: 'uint256', name: 'amount', type: 'uint256' },
+    ],
+    name: 'WithdrawToCollector',
+    type: 'event',
+  },
 ];
