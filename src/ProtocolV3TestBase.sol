@@ -98,19 +98,20 @@ contract ProtocolV3TestBase is RawProtocolV3TestBase, SeatbeltUtils, CommonTestB
       assertLt(gasUsed, (block.gaslimit * 95) / 100, 'BLOCK_GAS_LIMIT_EXCEEDED'); // 5% is kept as a buffer
     }
 
+    string memory rawDiff = vm.getStateDiffJson();
+    string memory logsJson = vm.getRecordedLogsJson();
+    ReserveConfig[] memory configAfter = createConfigurationSnapshot(afterString, pool);
+
     // as executor does delegateCall to the payload, the executor should have no storage changes
     {
       IPayloadsControllerCore pc = GovV3Helpers.getPayloadsController(pool, block.chainid);
       _validateNoExecutorStorageChange(
+        rawDiff,
         pc
           .getExecutorSettingsByAccessControl(PayloadsControllerUtils.AccessControl.Level_1)
           .executor
       );
     }
-
-    string memory rawDiff = vm.getStateDiffJson();
-    string memory logsJson = vm.getRecordedLogsJson();
-    ReserveConfig[] memory configAfter = createConfigurationSnapshot(afterString, pool);
     vm.writeJson(rawDiff, string(abi.encodePacked('./reports/', afterString, '.json')), '$.raw');
     vm.writeJson(logsJson, string(abi.encodePacked('./reports/', afterString, '.json')), '$.logs');
 
@@ -762,24 +763,27 @@ contract ProtocolV3TestBase is RawProtocolV3TestBase, SeatbeltUtils, CommonTestB
    * @dev Validates that no storage was written to the executor contract during payload execution.
    *      Since the executor delegatecalls the payload, any storage variable in the payload
    *      (or any contract it delegatecalls) would modify the executor's storage.
-   *      This check inspects the actual state diff rather than the payload's artifact,
-   *      so it also catches indirect delegatecall chains.
+   *      This check uses the JSON state diff to avoid materializing a massive StorageAccess[]
+   *      array into EVM memory, which causes MemoryOOG on pools with many assets (e.g. mainnet).
    *
    *      Requires vm.startStateDiffRecording() to have been called before payload execution.
    */
-  function _validateNoExecutorStorageChange(address executor) internal view virtual {
-    Vm.StorageAccess[] memory storageAccesses = vm.getStorageAccesses();
-    for (uint256 i = 0; i < storageAccesses.length; i++) {
+  function _validateNoExecutorStorageChange(
+    string memory stateDiffJson,
+    address executor
+  ) internal view virtual {
+    string memory executorKey = Strings.toHexString(uint160(executor), 20);
+    string memory stateDiffPath = string(abi.encodePacked('.', executorKey, '.stateDiff'));
+    if (vm.keyExistsJson(stateDiffJson, stateDiffPath)) {
+      string[] memory slots = vm.parseJsonKeys(stateDiffJson, stateDiffPath);
       require(
-        !(storageAccesses[i].account == executor &&
-          storageAccesses[i].isWrite &&
-          !storageAccesses[i].reverted),
+        slots.length == 0,
         string(
           abi.encodePacked(
-            'EXECUTOR_MUST_NOT_HAVE_STORAGE_CHANGES: slot ',
-            Strings.toHexString(uint256(storageAccesses[i].slot)),
-            ' was modified on executor ',
-            Strings.toHexString(uint160(executor), 20)
+            'EXECUTOR_MUST_NOT_HAVE_STORAGE_CHANGES: ',
+            Strings.toString(slots.length),
+            ' slot(s) modified on executor ',
+            executorKey
           )
         )
       );

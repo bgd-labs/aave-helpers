@@ -182,8 +182,8 @@ contract ProtocolV3TestMantleSnapshot is ProtocolV3TestBase {
     );
   }
 
-  // overriding the executor storage check as payload artifacts does not exists
-  function _validateNoExecutorStorageChange(address) internal view override {}
+  // overriding the executor storage check as payload artifacts does not exist
+  function _validateNoExecutorStorageChange(string memory, address) internal view override {}
 }
 
 contract ProtocolV3TestPlausibilityEMode is ProtocolV3TestBase {
