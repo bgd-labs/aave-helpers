@@ -20,8 +20,12 @@ contract DiffUtils is Test {
     string memory beforePath = string(abi.encodePacked('./reports/', reportBefore, '.json'));
     string memory afterPath = string(abi.encodePacked('./reports/', reportAfter, '.json'));
 
+    // currentFilePath() returns this file's path relative to project root,
+    // e.g. "src/DiffUtils.sol" or "lib/aave-helpers/src/DiffUtils.sol" when used as a dependency.
+    // Strip the filename to get the package root relative path.
+    string memory packageRoot = vm.replace(vm.currentFilePath(), 'src/DiffUtils.sol', '');
     string memory cliPath = string(
-      abi.encodePacked(vm.projectRoot(), '/packages/aave-helpers-js/cli.ts')
+      abi.encodePacked(vm.projectRoot(), '/', packageRoot, 'packages/aave-helpers-js/cli.ts')
     );
 
     string[] memory inputs = new string[](7);
