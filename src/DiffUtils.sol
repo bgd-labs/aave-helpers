@@ -20,9 +20,13 @@ contract DiffUtils is Test {
     string memory beforePath = string(abi.encodePacked('./reports/', reportBefore, '.json'));
     string memory afterPath = string(abi.encodePacked('./reports/', reportAfter, '.json'));
 
+    string memory cliPath = string(
+      abi.encodePacked(vm.projectRoot(), '/packages/aave-helpers-js/cli.ts')
+    );
+
     string[] memory inputs = new string[](7);
-    inputs[0] = 'npx';
-    inputs[1] = '@aave-dao/aave-helpers-js@^1.0.1';
+    inputs[0] = 'bun';
+    inputs[1] = cliPath;
     inputs[2] = 'diff-snapshots';
     inputs[3] = beforePath;
     inputs[4] = afterPath;
