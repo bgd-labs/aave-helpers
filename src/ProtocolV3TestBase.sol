@@ -562,20 +562,26 @@ contract ProtocolV3TestBase is RawProtocolV3TestBase, SeatbeltUtils, CommonTestB
     IPool pool,
     ReserveConfig memory testAssetConfig
   ) private view returns (ReserveConfig memory config) {
-    // first try: default-mode collateral (works for any borrowable-in-default-mode asset)
+    bool needsEMode = !testAssetConfig.borrowingEnabled &&
+      _isBorrowableInAnyEMode(pool, testAssetConfig.underlying);
+
+    // for eMode-only borrowable assets, collateral must share an eMode
+    if (needsEMode) {
+      for (uint256 i = 0; i < configs.length; i++) {
+        if (
+          _includeInE2e(configs[i]) &&
+          _getSharedEModeCategory(pool, configs[i].underlying, testAssetConfig.underlying) != 0
+        ) {
+          return configs[i];
+        }
+      }
+    }
+
+    // default-mode collateral (works for borrowable-in-default-mode or supply-only assets)
     for (uint256 i = 0; i < configs.length; i++) {
       if (
         _includeInE2e(configs[i]) && configs[i].usageAsCollateralEnabled && configs[i].ltv != 0
       ) return configs[i];
-    }
-    // fallback: find a collateral that shares an eMode with the test asset
-    for (uint256 i = 0; i < configs.length; i++) {
-      if (
-        _includeInE2e(configs[i]) &&
-        _getSharedEModeCategory(pool, configs[i].underlying, testAssetConfig.underlying) != 0
-      ) {
-        return configs[i];
-      }
     }
     revert('ERROR: No usable collateral found');
   }
