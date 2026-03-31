@@ -492,7 +492,6 @@ contract ProtocolV3TestBase is RawProtocolV3TestBase, SeatbeltUtils, CommonTestB
       if (
         // not frozen etc
         // usable as collateral
-        // not isolated asset as we can only borrow stablecoins against it
         // ltv is not 0
         _includeInE2e(configs[i]) && configs[i].usageAsCollateralEnabled && configs[i].ltv != 0
       ) return configs[i];
