@@ -252,10 +252,10 @@ contract ProtocolV3TestBase is RawProtocolV3TestBase, SeatbeltUtils, CommonTestB
    */
   function e2eTest(IPool pool) public {
     ReserveConfig[] memory configs = _getReservesConfigs(pool);
-    ReserveConfig memory collateralConfig = _getGoodCollateral(configs, pool);
     uint256 snapshot = vm.snapshotState();
     for (uint256 i; i < configs.length; i++) {
       if (_includeInE2e(configs[i])) {
+        ReserveConfig memory collateralConfig = _getGoodCollateral(configs, pool, configs[i]);
         e2eTestAsset(pool, collateralConfig, configs[i]);
         vm.revertToState(snapshot);
       } else {
@@ -554,21 +554,26 @@ contract ProtocolV3TestBase is RawProtocolV3TestBase, SeatbeltUtils, CommonTestB
   }
 
   /**
-   * @dev returns a "good" collateral in the list, checking both default mode and eMode
+   * @dev returns a "good" collateral for a given test asset.
+   * Prefers default-mode collateral, falls back to finding a collateral that shares an eMode with the test asset.
    */
   function _getGoodCollateral(
     ReserveConfig[] memory configs,
-    IPool pool
+    IPool pool,
+    ReserveConfig memory testAssetConfig
   ) private view returns (ReserveConfig memory config) {
-    // first try: default-mode collateral
+    // first try: default-mode collateral (works for any borrowable-in-default-mode asset)
     for (uint256 i = 0; i < configs.length; i++) {
       if (
         _includeInE2e(configs[i]) && configs[i].usageAsCollateralEnabled && configs[i].ltv != 0
       ) return configs[i];
     }
-    // fallback: eMode-only collateral
+    // fallback: find a collateral that shares an eMode with the test asset
     for (uint256 i = 0; i < configs.length; i++) {
-      if (_includeInE2e(configs[i]) && _isCollateralInAnyEMode(pool, configs[i].underlying)) {
+      if (
+        _includeInE2e(configs[i]) &&
+        _getSharedEModeCategory(pool, configs[i].underlying, testAssetConfig.underlying) != 0
+      ) {
         return configs[i];
       }
     }
