@@ -187,13 +187,72 @@ contract ProtocolV3TestBase is RawProtocolV3TestBase, SeatbeltUtils, CommonTestB
     return false;
   }
 
+  function _isCollateralInAnyEMode(IPool pool, address asset) internal view returns (bool) {
+    uint16 reserveId = pool.getReserveData(asset).id;
+    for (uint256 categoryId = 1; categoryId <= 255; categoryId++) {
+      uint128 collateralBitmap = pool.getEModeCategoryCollateralBitmap(uint8(categoryId));
+      if (
+        collateralBitmap != 0 &&
+        EModeConfiguration.isReserveEnabledOnBitmap(collateralBitmap, reserveId)
+      ) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * @dev Returns the first eMode category where collateralAsset is collateral AND borrowAsset is borrowable.
+   * Returns 0 if no shared eMode exists.
+   */
+  function _getSharedEModeCategory(
+    IPool pool,
+    address collateralAsset,
+    address borrowAsset
+  ) internal view returns (uint8) {
+    uint16 collateralReserveId = pool.getReserveData(collateralAsset).id;
+    uint16 borrowReserveId = pool.getReserveData(borrowAsset).id;
+    for (uint256 categoryId = 1; categoryId <= 255; categoryId++) {
+      uint128 collateralBitmap = pool.getEModeCategoryCollateralBitmap(uint8(categoryId));
+      uint128 borrowableBitmap = pool.getEModeCategoryBorrowableBitmap(uint8(categoryId));
+      if (
+        EModeConfiguration.isReserveEnabledOnBitmap(collateralBitmap, collateralReserveId) &&
+        EModeConfiguration.isReserveEnabledOnBitmap(borrowableBitmap, borrowReserveId)
+      ) {
+        return uint8(categoryId);
+      }
+    }
+    return 0;
+  }
+
+  /**
+   * @dev If the test asset is only borrowable in an eMode, sets the user into the appropriate eMode.
+   */
+  function _setupEModeIfNeeded(
+    IPool pool,
+    ReserveConfig memory collateralConfig,
+    ReserveConfig memory testAssetConfig,
+    address user
+  ) internal {
+    if (!testAssetConfig.borrowingEnabled) {
+      uint8 eModeCategory = _getSharedEModeCategory(
+        pool,
+        collateralConfig.underlying,
+        testAssetConfig.underlying
+      );
+      require(eModeCategory != 0, 'E2E: No shared eMode for collateral and borrow asset');
+      vm.prank(user);
+      pool.setUserEMode(eModeCategory);
+    }
+  }
+
   /**
    * @dev Makes a e2e test including withdrawals/borrows and supplies to various reserves.
    * @param pool the pool that should be tested
    */
   function e2eTest(IPool pool) public {
     ReserveConfig[] memory configs = _getReservesConfigs(pool);
-    ReserveConfig memory collateralConfig = _getGoodCollateral(configs);
+    ReserveConfig memory collateralConfig = _getGoodCollateral(configs, pool);
     uint256 snapshot = vm.snapshotState();
     for (uint256 i; i < configs.length; i++) {
       if (_includeInE2e(configs[i])) {
@@ -217,7 +276,11 @@ contract ProtocolV3TestBase is RawProtocolV3TestBase, SeatbeltUtils, CommonTestB
     );
     address collateralSupplier = vm.addr(3);
     address testAssetSupplier = vm.addr(4);
-    require(collateralConfig.usageAsCollateralEnabled, 'COLLATERAL_CONFIG_MUST_BE_COLLATERAL');
+    require(
+      collateralConfig.usageAsCollateralEnabled ||
+        _isCollateralInAnyEMode(pool, collateralConfig.underlying),
+      'COLLATERAL_CONFIG_MUST_BE_COLLATERAL'
+    );
     uint256 collateralAssetAmount = _getTokenAmountByDollarValue(pool, collateralConfig, 100_000);
     uint256 testAssetAmount = _getTokenAmountByDollarValue(pool, testAssetConfig, 10_000);
 
@@ -320,7 +383,12 @@ contract ProtocolV3TestBase is RawProtocolV3TestBase, SeatbeltUtils, CommonTestB
     }
 
     // test borrows, repayments and liquidations
-    if (testAssetConfig.borrowingEnabled) {
+    if (
+      testAssetConfig.borrowingEnabled ||
+      _isBorrowableInAnyEMode(pool, testAssetConfig.underlying)
+    ) {
+      _setupEModeIfNeeded(pool, collateralConfig, testAssetConfig, collateralSupplier);
+
       // test borrowing and repayment
       _borrow({
         config: testAssetConfig,
@@ -411,7 +479,10 @@ contract ProtocolV3TestBase is RawProtocolV3TestBase, SeatbeltUtils, CommonTestB
         interestRateMode: 0
       });
 
-      if (testAssetConfig.borrowingEnabled) {
+      if (
+        testAssetConfig.borrowingEnabled ||
+        _isBorrowableInAnyEMode(pool, testAssetConfig.underlying)
+      ) {
         _flashLoan({
           config: testAssetConfig,
           pool: pool,
@@ -483,18 +554,23 @@ contract ProtocolV3TestBase is RawProtocolV3TestBase, SeatbeltUtils, CommonTestB
   }
 
   /**
-   * @dev returns a "good" collateral in the list
+   * @dev returns a "good" collateral in the list, checking both default mode and eMode
    */
   function _getGoodCollateral(
-    ReserveConfig[] memory configs
-  ) private pure returns (ReserveConfig memory config) {
+    ReserveConfig[] memory configs,
+    IPool pool
+  ) private view returns (ReserveConfig memory config) {
+    // first try: default-mode collateral
     for (uint256 i = 0; i < configs.length; i++) {
       if (
-        // not frozen etc
-        // usable as collateral
-        // ltv is not 0
         _includeInE2e(configs[i]) && configs[i].usageAsCollateralEnabled && configs[i].ltv != 0
       ) return configs[i];
+    }
+    // fallback: eMode-only collateral
+    for (uint256 i = 0; i < configs.length; i++) {
+      if (_includeInE2e(configs[i]) && _isCollateralInAnyEMode(pool, configs[i].underlying)) {
+        return configs[i];
+      }
     }
     revert('ERROR: No usable collateral found');
   }
