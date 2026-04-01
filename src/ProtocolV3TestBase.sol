@@ -776,15 +776,15 @@ contract ProtocolV3TestBase is RawProtocolV3TestBase, SeatbeltUtils, CommonTestB
     ReserveConfig memory testAssetConfig,
     address borrower
   ) internal {
-    // skip when collateral == testAsset in eMode (eMode LT overrides reserve LT,
-    // and we can't exit eMode while having debt)
-    if (
-      testAssetConfig.underlying == collateralConfig.underlying &&
-      pool.getUserEMode(borrower) != 0
-    ) return;
-
     if (testAssetConfig.underlying != collateralConfig.underlying) {
       _changeAssetPrice(pool, testAssetConfig, 1000_00);
+    } else if (pool.getUserEMode(borrower) != 0) {
+      // in eMode, reserve-level LT is overridden — lower the eMode LT instead
+      IPoolAddressesProvider addressesProvider = IPoolAddressesProvider(pool.ADDRESSES_PROVIDER());
+      IPoolConfigurator poolConfigurator = IPoolConfigurator(addressesProvider.getPoolConfigurator());
+      uint8 categoryId = uint8(pool.getUserEMode(borrower));
+      vm.prank(addressesProvider.getACLAdmin());
+      poolConfigurator.setEModeCategory(categoryId, 5_00, 5_00, 105_00, '', false);
     } else {
       _setAssetLtvAndLiquidationThreshold({
         pool: pool,
