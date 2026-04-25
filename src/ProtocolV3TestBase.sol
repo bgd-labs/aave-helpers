@@ -221,7 +221,9 @@ contract ProtocolV3TestBase is RawProtocolV3TestBase, SeatbeltUtils, CommonTestB
     uint16 reserveId = pool.getReserveData(asset).id;
     uint8 emptyCounter;
     for (uint256 categoryId = 1; categoryId <= 255; categoryId++) {
-      DataTypes.CollateralConfig memory cfg = pool.getEModeCategoryCollateralConfig(uint8(categoryId));
+      DataTypes.CollateralConfig memory cfg = pool.getEModeCategoryCollateralConfig(
+        uint8(categoryId)
+      );
       if (cfg.liquidationThreshold == 0) {
         if (++emptyCounter > 2) break;
         continue;
@@ -242,7 +244,9 @@ contract ProtocolV3TestBase is RawProtocolV3TestBase, SeatbeltUtils, CommonTestB
     uint16 reserveId = pool.getReserveData(asset).id;
     uint8 emptyCounter;
     for (uint256 categoryId = 1; categoryId <= 255; categoryId++) {
-      DataTypes.CollateralConfig memory cfg = pool.getEModeCategoryCollateralConfig(uint8(categoryId));
+      DataTypes.CollateralConfig memory cfg = pool.getEModeCategoryCollateralConfig(
+        uint8(categoryId)
+      );
       if (cfg.liquidationThreshold == 0) {
         if (++emptyCounter > 2) break;
         continue;
@@ -272,7 +276,9 @@ contract ProtocolV3TestBase is RawProtocolV3TestBase, SeatbeltUtils, CommonTestB
     uint16 borrowReserveId = pool.getReserveData(borrowAsset).id;
     uint8 emptyCounter;
     for (uint256 categoryId = 1; categoryId <= 255; categoryId++) {
-      DataTypes.CollateralConfig memory cfg = pool.getEModeCategoryCollateralConfig(uint8(categoryId));
+      DataTypes.CollateralConfig memory cfg = pool.getEModeCategoryCollateralConfig(
+        uint8(categoryId)
+      );
       if (cfg.liquidationThreshold == 0) {
         if (++emptyCounter > 2) break;
         continue;
@@ -360,7 +366,9 @@ contract ProtocolV3TestBase is RawProtocolV3TestBase, SeatbeltUtils, CommonTestB
             collateral = configs[fallbackIdx];
             found = true;
           }
-        } else if (!configs[i].borrowingEnabled && _isCollateralInAnyEMode(pool, configs[i].underlying)) {
+        } else if (
+          !configs[i].borrowingEnabled && _isCollateralInAnyEMode(pool, configs[i].underlying)
+        ) {
           // asset is only collateral in eMode — use it as collateral and find a borrowable asset in the same eMode
           for (uint256 j = 0; j < configs.length; j++) {
             if (
@@ -484,7 +492,10 @@ contract ProtocolV3TestBase is RawProtocolV3TestBase, SeatbeltUtils, CommonTestB
         onBehalfOf: testAssetSupplier,
         referralCode: 0
       });
-      if ((testAssetConfig.borrowingEnabled || pool.getUserEMode(collateralSupplier) != 0) && (collateralConfig.ltv >= 10_00 || pool.getUserEMode(collateralSupplier) != 0)) {
+      if (
+        (testAssetConfig.borrowingEnabled || pool.getUserEMode(collateralSupplier) != 0) &&
+        (collateralConfig.ltv >= 10_00 || pool.getUserEMode(collateralSupplier) != 0)
+      ) {
         uint256 borrowAmount = 11 ** testAssetConfig.decimals;
 
         if (aTokenTotalSupply < borrowAmount) {
@@ -530,7 +541,10 @@ contract ProtocolV3TestBase is RawProtocolV3TestBase, SeatbeltUtils, CommonTestB
     // test borrows, repayments and liquidations
     // borrow only if asset is borrowable AND collateral can support the borrow
     // collateral needs ltv >= 10% (1000 bps) or user must be in eMode for meaningful borrowing
-    if ((testAssetConfig.borrowingEnabled || pool.getUserEMode(collateralSupplier) != 0) && (collateralConfig.ltv >= 10_00 || pool.getUserEMode(collateralSupplier) != 0)) {
+    if (
+      (testAssetConfig.borrowingEnabled || pool.getUserEMode(collateralSupplier) != 0) &&
+      (collateralConfig.ltv >= 10_00 || pool.getUserEMode(collateralSupplier) != 0)
+    ) {
       // test borrowing and repayment
       _borrow({
         config: testAssetConfig,
@@ -584,7 +598,10 @@ contract ProtocolV3TestBase is RawProtocolV3TestBase, SeatbeltUtils, CommonTestB
         interestRateMode: 0
       });
 
-      if ((testAssetConfig.borrowingEnabled || pool.getUserEMode(collateralSupplier) != 0) && (collateralConfig.ltv >= 10_00 || pool.getUserEMode(collateralSupplier) != 0)) {
+      if (
+        (testAssetConfig.borrowingEnabled || pool.getUserEMode(collateralSupplier) != 0) &&
+        (collateralConfig.ltv >= 10_00 || pool.getUserEMode(collateralSupplier) != 0)
+      ) {
         _flashLoan({
           config: testAssetConfig,
           pool: pool,
@@ -654,7 +671,6 @@ contract ProtocolV3TestBase is RawProtocolV3TestBase, SeatbeltUtils, CommonTestB
       105_00
     );
   }
-
 
   function _deposit(
     ReserveConfig memory config,
@@ -781,7 +797,9 @@ contract ProtocolV3TestBase is RawProtocolV3TestBase, SeatbeltUtils, CommonTestB
     } else if (pool.getUserEMode(borrower) != 0) {
       // in eMode, reserve-level LT is overridden — lower the eMode LT instead
       IPoolAddressesProvider addressesProvider = IPoolAddressesProvider(pool.ADDRESSES_PROVIDER());
-      IPoolConfigurator poolConfigurator = IPoolConfigurator(addressesProvider.getPoolConfigurator());
+      IPoolConfigurator poolConfigurator = IPoolConfigurator(
+        addressesProvider.getPoolConfigurator()
+      );
       uint8 categoryId = uint8(pool.getUserEMode(borrower));
       vm.prank(addressesProvider.getACLAdmin());
       poolConfigurator.setEModeCategory(categoryId, 5_00, 5_00, 105_00, '', false);
@@ -797,9 +815,25 @@ contract ProtocolV3TestBase is RawProtocolV3TestBase, SeatbeltUtils, CommonTestB
     address liquidator = vm.addr(5);
     uint256 snapshotBeforeLiquidation = vm.snapshotState();
 
-    _liquidationCall(collateralConfig, testAssetConfig, pool, liquidator, borrower, type(uint256).max, false);
+    _liquidationCall(
+      collateralConfig,
+      testAssetConfig,
+      pool,
+      liquidator,
+      borrower,
+      type(uint256).max,
+      false
+    );
     vm.revertToState(snapshotBeforeLiquidation);
-    _liquidationCall(collateralConfig, testAssetConfig, pool, liquidator, borrower, type(uint256).max, true);
+    _liquidationCall(
+      collateralConfig,
+      testAssetConfig,
+      pool,
+      liquidator,
+      borrower,
+      type(uint256).max,
+      true
+    );
   }
 
   function _liquidationCall(

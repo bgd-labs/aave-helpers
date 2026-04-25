@@ -236,7 +236,11 @@ contract ProtocolV3TestPlausibilityEMode is ProtocolV3TestBase {
 
     uint256 idx;
     for (uint256 i; i < configsAfter.length; i++) {
-      if (configsAfter[i].borrowingEnabled && configsAfter[i].borrowCap > 0 && configsAfter[i].borrowCap != configsAfter[i].supplyCap) {
+      if (
+        configsAfter[i].borrowingEnabled &&
+        configsAfter[i].borrowCap > 0 &&
+        configsAfter[i].borrowCap != configsAfter[i].supplyCap
+      ) {
         idx = i;
         break;
       }
@@ -255,7 +259,14 @@ contract ProtocolV3TestPlausibilityEMode is ProtocolV3TestBase {
     configurator.setReserveBorrowing(configsAfter[idx].underlying, false);
     // ensure asset is borrowable in e-mode category 1
     // first ensure category 1 exists
-    configurator.setEModeCategory({categoryId: 1, ltv: 90_00, liquidationThreshold: 93_00, liquidationBonus: 101_00, label: 'test', isolated: false});
+    configurator.setEModeCategory({
+      categoryId: 1,
+      ltv: 90_00,
+      liquidationThreshold: 93_00,
+      liquidationBonus: 101_00,
+      label: 'test',
+      isolated: false
+    });
     configurator.setAssetBorrowableInEMode(configsAfter[idx].underlying, 1, true);
     vm.stopPrank();
 
